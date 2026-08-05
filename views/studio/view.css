@@ -1,0 +1,31 @@
+:root { color: #192226; background: #f5f3ed; font-family: ui-sans-serif, system-ui, sans-serif; }
+* { box-sizing: border-box; }
+.studio { max-width: 940px; margin: 0 auto; padding: 28px 20px 40px; }
+.studio-header { display: flex; gap: 24px; align-items: end; justify-content: space-between; border-bottom: 1px solid #cfd4ce; padding-bottom: 24px; }
+.eyebrow { color: #52706a; font-size: 12px; font-weight: 700; letter-spacing: .11em; margin: 0 0 8px; text-transform: uppercase; }
+h1 { font-family: Georgia, serif; font-size: clamp(32px, 7vw, 54px); font-weight: 400; letter-spacing: -.04em; line-height: .95; margin: 0; }
+.subhead { color: #59666a; line-height: 1.5; margin: 13px 0 0; max-width: 600px; }
+.selection-count { align-items: baseline; display: flex; flex: 0 0 auto; gap: 6px; white-space: nowrap; }
+.selection-count strong { color: #0f4e47; font-size: 36px; font-weight: 500; }
+.selection-count span { color: #59666a; font-size: 13px; }
+.notice-panel { background: #e4ece5; border-left: 3px solid #2f7164; color: #36514a; font-size: 13px; line-height: 1.5; margin: 20px 0; padding: 11px 13px; }
+.operation-list { display: grid; gap: 12px; }
+.operation { background: #fffef9; border: 1px solid #d9ddd6; border-left: 4px solid #2f7164; border-radius: 8px; padding: 18px; }
+.operation-disabled { border-left-color: #a76a52; opacity: .78; }
+.operation-topline { align-items: center; display: flex; flex-wrap: wrap; gap: 9px; }
+.method { border-radius: 3px; font-size: 11px; font-weight: 800; letter-spacing: .08em; padding: 4px 6px; }
+.method-get { background: #d9eee7; color: #075f48; }
+.method-post { background: #f4dfd7; color: #8c3a25; }
+code { color: #374148; font-size: 13px; overflow-wrap: anywhere; }
+.status { border-radius: 999px; font-size: 11px; font-weight: 700; margin-left: auto; padding: 4px 8px; }
+.status-supported { background: #e0eee5; color: #28613e; }.status-unsupported { background: #f3e5df; color: #88442f; }
+h2 { font-size: 18px; font-weight: 650; margin: 14px 0 12px; }.reason { color: #83412d; font-size: 13px; margin: 12px 0; }
+button { background: #123f39; border: 0; border-radius: 5px; color: white; cursor: pointer; font: inherit; font-size: 13px; padding: 8px 11px; }button:hover { background: #0a302c; }button:disabled { background: #cdd1cb; color: #67706e; cursor: not-allowed; }.secondary { background: #eef0eb; color: #24443e; }.secondary:hover { background: #dfe5dc; }
+.editor { border-top: 1px solid #cfd4ce; margin-top: 34px; padding-top: 28px; }.section-heading h2 { font-family: Georgia, serif; font-size: 28px; font-weight: 400; margin: 0 0 16px; }
+.tool-editor { background: #fffef9; border: 1px solid #d9ddd6; border-radius: 8px; display: grid; gap: 12px; margin-top: 14px; padding: 18px; }.tool-editor h3 { font-size: 17px; margin: 0 0 4px; }.tool-editor > label { display: grid; gap: 5px; font-size: 12px; font-weight: 700; color: #435258; }
+input, textarea, select { background: white; border: 1px solid #bfc8c0; border-radius: 4px; color: #202c31; font: inherit; font-size: 14px; min-height: 34px; padding: 7px 8px; width: 100%; }textarea { min-height: 66px; resize: vertical; }
+fieldset { border: 1px solid #d4dbd4; border-radius: 5px; margin: 3px 0; padding: 12px; }legend { color: #52706a; font-size: 11px; font-weight: 700; letter-spacing: .08em; padding: 0 4px; text-transform: uppercase; }
+.input-editor { align-items: end; border-top: 1px solid #edf0eb; display: grid; gap: 9px; grid-template-columns: 1fr 1.3fr 1.1fr; padding: 10px 0; }.input-editor:first-of-type { border-top: 0; padding-top: 0; }.input-editor > span { color: #21333a; font-family: ui-monospace, monospace; font-size: 12px; }.input-editor small { color: #6e7679; display: block; font-family: ui-sans-serif, sans-serif; font-size: 10px; margin-top: 3px; }.input-editor label { color: #5d696e; font-size: 11px; font-weight: 700; }.input-editor input { margin-top: 4px; }
+.annotations { display: flex; flex-wrap: wrap; gap: 14px; }.annotations label { align-items: center; display: flex; gap: 6px; font-size: 13px; }.annotations input { accent-color: #123f39; min-height: auto; width: auto; }
+.studio-footer { align-items: center; border-top: 1px solid #cfd4ce; color: #506168; display: flex; font-size: 13px; gap: 16px; justify-content: space-between; margin-top: 26px; padding-top: 18px; }.studio-footer div:last-child { display: flex; gap: 8px; }
+@media (max-width: 620px) { .studio { padding: 22px 14px 30px; }.studio-header, .studio-footer { align-items: start; flex-direction: column; }.status { margin-left: 0; }.input-editor { grid-template-columns: 1fr; }.input-editor > span { margin-bottom: 3px; } }

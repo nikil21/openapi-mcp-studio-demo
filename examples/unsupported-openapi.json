@@ -1,0 +1,14 @@
+{
+  "openapi": "3.0.3",
+  "info": { "title": "Unsupported fixture", "version": "1.0.0" },
+  "paths": {
+    "/widgets": {
+      "get": {
+        "operationId": "widgets/list",
+        "summary": "List widgets with a referenced parameter",
+        "parameters": [{ "$ref": "#/components/parameters/limit" }],
+        "responses": { "200": { "description": "Widgets", "content": { "application/json": { "schema": { "type": "array" } } } } }
+      }
+    }
+  }
+}

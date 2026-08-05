@@ -1,0 +1,54 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "GitHub Repository API",
+    "version": "2026-08-05"
+  },
+  "servers": [{ "url": "https://api.github.com" }],
+  "paths": {
+    "/repos/{owner}/{repo}": {
+      "get": {
+        "operationId": "repos/get",
+        "summary": "Get a repository overview",
+        "parameters": [
+          { "name": "owner", "in": "path", "required": true, "description": "Repository owner", "schema": { "type": "string" } },
+          { "name": "repo", "in": "path", "required": true, "description": "Repository name", "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "Repository", "content": { "application/json": { "schema": { "type": "object" } } } } }
+      }
+    },
+    "/repos/{owner}/{repo}/issues": {
+      "get": {
+        "operationId": "issues/list-for-repo",
+        "summary": "List repository issues",
+        "parameters": [
+          { "name": "owner", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "repo", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "state", "in": "query", "required": false, "description": "Issue state", "schema": { "type": "string" } },
+          { "name": "per_page", "in": "query", "required": false, "description": "Maximum records", "schema": { "type": "integer" } }
+        ],
+        "responses": { "200": { "description": "Issues", "content": { "application/json": { "schema": { "type": "array" } } } } }
+      }
+    },
+    "/repos/{owner}/{repo}/contributors": {
+      "get": {
+        "operationId": "repos/list-contributors",
+        "summary": "List repository contributors",
+        "parameters": [
+          { "name": "owner", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "repo", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "per_page", "in": "query", "required": false, "description": "Maximum records", "schema": { "type": "integer" } }
+        ],
+        "responses": { "200": { "description": "Contributors", "content": { "application/json": { "schema": { "type": "array" } } } } }
+      }
+    },
+    "/repos/{owner}/{repo}/hooks": {
+      "post": {
+        "operationId": "repos/create-hook",
+        "summary": "Create a repository webhook",
+        "requestBody": { "required": true },
+        "responses": { "201": { "description": "Webhook", "content": { "application/json": { "schema": { "type": "object" } } } } }
+      }
+    }
+  }
+}

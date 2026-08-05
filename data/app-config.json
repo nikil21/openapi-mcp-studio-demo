@@ -1,0 +1,44 @@
+{
+  "app": { "name": "GitHub Repository Assistant", "version": "0.1.0" },
+  "api": {
+    "baseUrl": "https://api.github.com",
+    "allowedHosts": ["api.github.com"],
+    "defaultHeaders": { "Accept": "application/vnd.github+json" },
+    "optionalBearerEnv": "GITHUB_TOKEN"
+  },
+  "tools": [
+    {
+      "operationId": "repos/get",
+      "name": "get_repository_overview",
+      "description": "Get a concise overview of a public GitHub repository.",
+      "inputLabels": { "owner": "Repository owner", "repo": "Repository name" },
+      "parameterMappings": {},
+      "defaults": {},
+      "resultLimit": 1,
+      "annotations": { "readOnly": true, "destructive": false, "openWorld": true },
+      "view": { "type": "summary-card" }
+    },
+    {
+      "operationId": "issues/list-for-repo",
+      "name": "list_repository_issues",
+      "description": "List issues for a public GitHub repository.",
+      "inputLabels": { "owner": "Repository owner", "repo": "Repository name", "state": "Issue state" },
+      "parameterMappings": { "limit": "per_page" },
+      "defaults": { "state": "open" },
+      "resultLimit": 10,
+      "annotations": { "readOnly": true, "destructive": false, "openWorld": true },
+      "view": { "type": "data-table" }
+    },
+    {
+      "operationId": "repos/list-contributors",
+      "name": "list_top_contributors",
+      "description": "List top contributors for a public GitHub repository.",
+      "inputLabels": { "owner": "Repository owner", "repo": "Repository name" },
+      "parameterMappings": { "limit": "per_page" },
+      "defaults": {},
+      "resultLimit": 10,
+      "annotations": { "readOnly": true, "destructive": false, "openWorld": true },
+      "view": { "type": "ranked-list" }
+    }
+  ]
+}
