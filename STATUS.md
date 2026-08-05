@@ -2,7 +2,7 @@
 
 ## Milestone 0: Toolchain
 
-Status: Milestone 3 complete locally. The existing Manufact deployment remains the unmodified Milestone 0 template.
+Status: Phase 1 complete and publicly deployed.
 
 Completed on 2026-08-05:
 
@@ -43,6 +43,9 @@ Verification results:
 - Final dependency audit: zero production vulnerabilities.
 - Fixed issue result limiting by over-fetching GitHub issue rows before filtering pull requests; the table now returns the requested number of actual issues.
 - Final test suite: 13 passing tests.
+- Published the project at `https://github.com/nikil21/openapi-mcp-studio-demo`.
+- Deployed the completed Studio to Manufact Cloud at `https://keen-forge-ocsbv.run.mcp-use.com/mcp`.
+- Verified all three public GitHub tools and their SummaryCard, DataTable, and RankedList UI resources after configuring the optional server-side GitHub token.
 - Screenshot rendering through the mcp-use CLI timed out waiting for readiness; the tool and bound view resource were verified, but visual screenshot verification remains outstanding.
 - Deployment status: running.
 - Live MCP URL: `https://keen-forge-ocsbv.run.mcp-use.com/mcp`.
@@ -51,6 +54,6 @@ Verification results:
 
 Next tasks:
 
-1. Create a personal GitHub repository and push the clean-room source before publishing portfolio artifacts.
-2. Deploy the reviewed Studio to Manufact after explicit approval.
-3. Capture manual Inspector screenshots; the framework screenshot CLI still times out waiting for view readiness.
+1. Capture manual Inspector screenshots; the framework screenshot CLI still times out waiting for view readiness.
+2. Record the two-minute demo and application video.
+3. Use the Phase 2 plan to validate remote spec import, view bindings, persistence, and constrained flow configuration with users.

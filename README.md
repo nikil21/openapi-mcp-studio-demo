@@ -52,12 +52,12 @@ node .agents/skills/mcp-apps-builder/scripts/check-v2.mjs .
 
 ## Deployment
 
-The initial stock template is deployed at:
+The completed Studio is deployed at:
 
 - MCP URL: `https://keen-forge-ocsbv.run.mcp-use.com/mcp`
 - Chat URL: `https://keen-forge-ocsbv.run.mcp-use.com/chat`
 
-This deployment intentionally predates Milestone 1. Do not treat it as a live Studio release until a later approved deployment.
+All three configured GitHub tools and their assigned MCP App views have been verified against this public endpoint.
 
 ## Security Boundary
 

@@ -65,3 +65,7 @@ GitHub's issues endpoint also returns pull requests. For the issue tool, the exe
 ## 2026-08-05: Defer flow configuration to Phase 2
 
 Phase 2 will test a constrained flow builder for sequences of configured tools, field mappings, conditions, and explicit confirmations. Arbitrary workflows, background work, autonomous loops, and write paths remain out of scope until durable execution, authorization, and audit requirements are designed.
+
+## 2026-08-05: Use an optional server-side GitHub token in production
+
+Unauthenticated GitHub requests from the shared Manufact egress IP reached GitHub's rate limit. The optional `GITHUB_TOKEN` environment variable was configured in Manufact Cloud and is not stored in this repository, emitted by the Studio, or logged by the runtime. The public deployment was then verified with all three configured tools.
