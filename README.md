@@ -77,3 +77,22 @@ All three configured GitHub tools and their assigned MCP App views have been ver
 ## Phase 2 Direction
 
 The next validated product slice is a separately hosted Studio with remote spec import, visual view bindings and preview, versioned configuration, and a constrained flow builder for sequential tools, field mapping, conditions, and explicit user confirmations. See [`docs/phase-2.md`](docs/phase-2.md).
+
+### Standalone Studio Foundation
+
+Phase 2's standalone Studio lives in `studio/` and currently runs with local fixture data:
+
+```bash
+cd studio
+npm install
+npm run dev:api
+```
+
+In a second terminal:
+
+```bash
+cd studio
+npm run dev
+```
+
+Open `http://127.0.0.1:5173` to import a public OpenAPI JSON URL, curate up to three supported GET operations, and edit local tool drafts. The import API is local-only at this stage; it is intentionally separate from the Manufact-hosted MCP runtime.

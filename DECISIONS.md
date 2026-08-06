@@ -69,3 +69,15 @@ Phase 2 will test a constrained flow builder for sequences of configured tools, 
 ## 2026-08-05: Use an optional server-side GitHub token in production
 
 Unauthenticated GitHub requests from the shared Manufact egress IP reached GitHub's rate limit. The optional `GITHUB_TOKEN` environment variable was configured in Manufact Cloud and is not stored in this repository, emitted by the Studio, or logged by the runtime. The public deployment was then verified with all three configured tools.
+
+## 2026-08-05: Separate the Phase 2 Studio from the MCP runtime
+
+Phase 2 will create a standalone Studio application. The current MCP App Studio remains a useful Phase 1 proof and runtime-facing surface, but a standalone app is required for projects, durable configuration, preview, and a safe publish lifecycle. The browser edits drafts only; server-side validation and versioning control runtime changes.
+
+## 2026-08-06: Start the standalone Studio in local fixture mode
+
+The Phase 2.0 Studio uses a separate React/Vite application under `studio/`. It establishes the project lifecycle and release vocabulary before external persistence is introduced. This avoids prematurely committing to a database provider or exposing credentials in browser code; Supabase or Neon becomes necessary at the publish-lifecycle milestone.
+
+## 2026-08-06: Import remote specifications through a local API boundary
+
+The standalone Studio does not fetch arbitrary URLs in browser code. Its local import API requires HTTPS, resolves and rejects private/local network targets, disallows redirects, limits response size, and uses a timeout. This is a development implementation of the server-side import boundary; it must be hosted with the Studio before public use.

@@ -2,7 +2,7 @@
 
 ## Milestone 0: Toolchain
 
-Status: Phase 1 complete and publicly deployed.
+Status: Phase 1 complete and publicly deployed. Phase 2.1 API import and tool-curation slice complete locally.
 
 Completed on 2026-08-05:
 
@@ -46,6 +46,11 @@ Verification results:
 - Published the project at `https://github.com/nikil21/openapi-mcp-studio-demo`.
 - Deployed the completed Studio to Manufact Cloud at `https://keen-forge-ocsbv.run.mcp-use.com/mcp`.
 - Verified all three public GitHub tools and their SummaryCard, DataTable, and RankedList UI resources after configuring the optional server-side GitHub token.
+- Added a standalone React/Vite Studio application in `studio/` with project lifecycle navigation, draft/published-version framing, runtime contract visibility, and local fixture mode.
+- Studio foundation verification: lint and production build pass; local shell responds at `http://127.0.0.1:5173`.
+- Added a local Studio import API with public-HTTPS validation, private-network rejection, redirect blocking, timeout, and response cap.
+- Added remote OpenAPI import, focused support classification, three-tool selection, and editable local tool drafts to the standalone Studio.
+- Verified import of the public GitHub fixture and rejection of a localhost HTTP URL; Studio lint and production build pass.
 - Screenshot rendering through the mcp-use CLI timed out waiting for readiness; the tool and bound view resource were verified, but visual screenshot verification remains outstanding.
 - Deployment status: running.
 - Live MCP URL: `https://keen-forge-ocsbv.run.mcp-use.com/mcp`.
@@ -54,6 +59,6 @@ Verification results:
 
 Next tasks:
 
-1. Capture manual Inspector screenshots; the framework screenshot CLI still times out waiting for view readiness.
-2. Record the two-minute demo and application video.
-3. Use the Phase 2 plan to validate remote spec import, view bindings, persistence, and constrained flow configuration with users.
+1. Implement Phase 2.2 view-template gallery, field bindings, and live preview in the standalone Studio.
+2. Capture manual Inspector screenshots; the framework screenshot CLI still times out waiting for view readiness.
+3. Record the two-minute demo and application video.
