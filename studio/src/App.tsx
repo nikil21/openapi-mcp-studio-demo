@@ -1,9 +1,11 @@
 import { startTransition, useState } from 'react'
 import { classifyOpenApi, type Operation } from './lib/openapi'
 import './App.css'
+import './views.css'
 
 type Section = 'Build' | 'Tools' | 'Views' | 'Flows' | 'Test' | 'Publish'
 type ToolDraft = { operationId: string; name: string; description: string; resultLimit: number; view: string }
+type ViewDraft = { template: string; titleField: string; detailField: string; metricField: string }
 
 const sections: Section[] = ['Build', 'Tools', 'Views', 'Flows', 'Test', 'Publish']
 const defaultSource = 'https://raw.githubusercontent.com/nikil21/openapi-mcp-studio-demo/main/examples/github-openapi-subset.json'
@@ -13,6 +15,18 @@ const initialOperations: Operation[] = [
   { id: 'repos/list-contributors', method: 'GET', path: '/repos/{owner}/{repo}/contributors', summary: 'List repository contributors', supported: true, reasons: [], parameters: [] },
   { id: 'repos/create-hook', method: 'POST', path: '/repos/{owner}/{repo}/hooks', summary: 'Create a repository webhook', supported: false, reasons: ['Only GET operations are supported in this draft.'], parameters: [] },
 ]
+
+const previewData = {
+  full_name: 'acme/atlas', description: 'A compact MCP application platform for customer operations.', stars: '1,428', forks: '219', language: 'TypeScript',
+  issues: [{ title: 'Add customer intake template', author: 'maya', updatedAt: 'Today', labels: 'enhancement' }, { title: 'Support published draft rollbacks', author: 'sam', updatedAt: 'Yesterday', labels: 'runtime' }],
+  contributors: [{ login: 'mira', contributions: '184' }, { login: 'alex', contributions: '129' }, { login: 'leo', contributions: '73' }],
+}
+
+function createViewDraft(template: string): ViewDraft {
+  if (template === 'Data table') return { template, titleField: 'title', detailField: 'author', metricField: 'updatedAt' }
+  if (template === 'Ranked list') return { template, titleField: 'login', detailField: 'contributions', metricField: 'contributions' }
+  return { template: 'Summary card', titleField: 'full_name', detailField: 'description', metricField: 'stars' }
+}
 
 function toSnakeCase(value: string) {
   return value
@@ -39,6 +53,7 @@ function App() {
   const [operations, setOperations] = useState(initialOperations)
   const [selected, setSelected] = useState(initialOperations.filter((operation) => operation.supported).map((operation) => operation.id))
   const [tools, setTools] = useState(initialOperations.filter((operation) => operation.supported).map(createToolDraft))
+  const [views, setViews] = useState<Record<string, ViewDraft>>(() => Object.fromEntries(initialOperations.filter((operation) => operation.supported).map((operation) => [operation.id, createViewDraft(createToolDraft(operation).view)])))
   const [importState, setImportState] = useState<'idle' | 'loading' | 'error'>('idle')
   const [message, setMessage] = useState('')
   const selectSection = (next: Section) => startTransition(() => setSection(next))
@@ -50,18 +65,20 @@ function App() {
       if (!response.ok || payload.document === undefined) throw new Error(payload.error ?? 'Specification import failed.')
       const catalog = classifyOpenApi(payload.document)
       const nextSelected = catalog.operations.filter((operation) => operation.supported).slice(0, 3).map((operation) => operation.id)
-      setApiTitle(catalog.title); setApiVersion(catalog.version); setOperations(catalog.operations); setSelected(nextSelected); setTools(catalog.operations.filter((operation) => nextSelected.includes(operation.id)).map(createToolDraft)); setSourceUrl(payload.sourceUrl ?? sourceUrl); setMessage(`Imported ${catalog.operations.length} operations. ${nextSelected.length} are selected for the draft.`); setImportState('idle')
+      const nextTools = catalog.operations.filter((operation) => nextSelected.includes(operation.id)).map(createToolDraft)
+      setApiTitle(catalog.title); setApiVersion(catalog.version); setOperations(catalog.operations); setSelected(nextSelected); setTools(nextTools); setViews(Object.fromEntries(nextTools.map((tool) => [tool.operationId, createViewDraft(tool.view)]))); setSourceUrl(payload.sourceUrl ?? sourceUrl); setMessage(`Imported ${catalog.operations.length} operations. ${nextSelected.length} are selected for the draft.`); setImportState('idle')
     } catch (error) { setImportState('error'); setMessage(error instanceof Error ? error.message : 'Specification import failed.') }
   }
   const toggleOperation = (operation: Operation) => {
     if (!operation.supported) return
-    if (selected.includes(operation.id)) { setSelected(selected.filter((id) => id !== operation.id)); setTools(tools.filter((tool) => tool.operationId !== operation.id)); return }
+    if (selected.includes(operation.id)) { setSelected(selected.filter((id) => id !== operation.id)); setTools(tools.filter((tool) => tool.operationId !== operation.id)); setViews(({ [operation.id]: _, ...remaining }) => remaining); return }
     if (selected.length === 3) return setMessage('A draft supports a maximum of three selected tools.')
-    setSelected([...selected, operation.id]); setTools([...tools, createToolDraft(operation)])
+    const draft = createToolDraft(operation); setSelected([...selected, operation.id]); setTools([...tools, draft]); setViews({ ...views, [operation.id]: createViewDraft(draft.view) })
   }
   const updateTool = (operationId: string, key: keyof Omit<ToolDraft, 'operationId'>, value: string | number) => setTools(tools.map((tool) => tool.operationId === operationId ? { ...tool, [key]: value } : tool))
+  const updateView = (operationId: string, key: keyof ViewDraft, value: string) => setViews({ ...views, [operationId]: { ...(views[operationId] ?? createViewDraft('Summary card')), [key]: value } })
 
-  return <div className="app-shell"><aside className="sidebar"><a className="brand" href="#build" onClick={() => selectSection('Build')}><span className="brand-mark">M</span><span>mcp studio<small>PHASE 2</small></span></a><nav aria-label="Project sections"><p className="nav-label">Project</p>{sections.map((item, index) => <button className={section === item ? 'nav-item active' : 'nav-item'} key={item} onClick={() => selectSection(item)} type="button"><span>0{index + 1}</span>{item}</button>)}</nav><div className="sidebar-footer"><span className="status-dot" /> Local fixture mode<small>Import API available locally</small></div></aside><main><header className="topbar"><div><p className="eyebrow">Project / {apiTitle}</p><h1>{section}</h1></div><div className="topbar-actions"><span className="draft-pill">Draft v0.2</span><button type="button" onClick={() => selectSection('Publish')}>Publish</button></div></header>{section === 'Build' ? <BuildOverview sourceUrl={sourceUrl} setSourceUrl={setSourceUrl} importSource={importSource} importState={importState} message={message} apiTitle={apiTitle} apiVersion={apiVersion} operations={operations} selected={selected} toggleOperation={toggleOperation} /> : section === 'Tools' ? <ToolEditor tools={tools} operations={operations} updateTool={updateTool} /> : <Placeholder section={section} />}</main></div>
+  return <div className="app-shell"><aside className="sidebar"><a className="brand" href="#build" onClick={() => selectSection('Build')}><span className="brand-mark">M</span><span>mcp studio<small>PHASE 2</small></span></a><nav aria-label="Project sections"><p className="nav-label">Project</p>{sections.map((item, index) => <button className={section === item ? 'nav-item active' : 'nav-item'} key={item} onClick={() => selectSection(item)} type="button"><span>0{index + 1}</span>{item}</button>)}</nav><div className="sidebar-footer"><span className="status-dot" /> Local fixture mode<small>Import API available locally</small></div></aside><main><header className="topbar"><div><p className="eyebrow">Project / {apiTitle}</p><h1>{section}</h1></div><div className="topbar-actions"><span className="draft-pill">Draft v0.2</span><button type="button" onClick={() => selectSection('Publish')}>Publish</button></div></header>{section === 'Build' ? <BuildOverview sourceUrl={sourceUrl} setSourceUrl={setSourceUrl} importSource={importSource} importState={importState} message={message} apiTitle={apiTitle} apiVersion={apiVersion} operations={operations} selected={selected} toggleOperation={toggleOperation} /> : section === 'Tools' ? <ToolEditor tools={tools} operations={operations} updateTool={updateTool} /> : section === 'Views' ? <ViewEditor tools={tools} views={views} updateTool={updateTool} updateView={updateView} /> : <Placeholder section={section} />}</main></div>
 }
 
 function BuildOverview({ sourceUrl, setSourceUrl, importSource, importState, message, apiTitle, apiVersion, operations, selected, toggleOperation }: { sourceUrl: string; setSourceUrl: (value: string) => void; importSource: () => void; importState: 'idle' | 'loading' | 'error'; message: string; apiTitle: string; apiVersion: string; operations: Operation[]; selected: string[]; toggleOperation: (operation: Operation) => void }) {
@@ -72,6 +89,26 @@ function ToolEditor({ tools, operations, updateTool }: { tools: ToolDraft[]; ope
   return <div className="workspace"><section className="editor-intro"><p className="eyebrow">03 / Tool drafts</p><h2>Give the model and your users a clear contract.</h2><p>These are local drafts. Publishing and runtime activation remain explicit later lifecycle steps.</p></section><section className="tool-editor-list">{tools.map((tool) => { const operation = operations.find((item) => item.id === tool.operationId); return <article className="tool-editor-card" key={tool.operationId}><div className="editor-card-heading"><div><code>{operation?.method} {operation?.path}</code><h3>{operation?.summary}</h3></div><span>{tool.view}</span></div><label>Tool name<input value={tool.name} onChange={(event) => updateTool(tool.operationId, 'name', event.target.value)} /></label><label>Description<textarea value={tool.description} onChange={(event) => updateTool(tool.operationId, 'description', event.target.value)} /></label><div className="editor-grid"><label>Result limit<input type="number" min="1" max="100" value={tool.resultLimit} onChange={(event) => updateTool(tool.operationId, 'resultLimit', Number(event.target.value))} /></label><label>View template<select value={tool.view} onChange={(event) => updateTool(tool.operationId, 'view', event.target.value)}><option>Summary card</option><option>Data table</option><option>Ranked list</option></select></label></div></article> })}</section></div>
 }
 
-function Placeholder({ section }: { section: Exclude<Section, 'Build' | 'Tools'> }) { const copy: Record<Exclude<Section, 'Build' | 'Tools'>, string> = { Views: 'Phase 2.2 will bind template properties to API fields and render a live preview.', Flows: 'Phase 2.4 will add constrained linear flows with inputs, tool calls, conditions, and results.', Test: 'Test runs will make input mappings, output data, and errors inspectable before publish.', Publish: 'Phase 2.3 will validate, version, diff, publish, and roll back configurations safely.' }; return <div className="placeholder"><p className="eyebrow">Planned workspace</p><h2>{section} is next in the lifecycle.</h2><p>{copy[section]}</p><span>Phase 2.1 in progress</span></div> }
+function ViewEditor({ tools, views, updateTool, updateView }: { tools: ToolDraft[]; views: Record<string, ViewDraft>; updateTool: (operationId: string, key: keyof Omit<ToolDraft, 'operationId'>, value: string | number) => void; updateView: (operationId: string, key: keyof ViewDraft, value: string) => void }) {
+  const [selectedToolId, setSelectedToolId] = useState(tools[0]?.operationId ?? '')
+  const tool = tools.find((item) => item.operationId === selectedToolId) ?? tools[0]
+  if (tool === undefined) return <div className="placeholder"><p className="eyebrow">View builder</p><h2>Select a tool first.</h2><p>Return to Build and select an eligible operation to configure its result view.</p></div>
+  const view = views[tool.operationId] ?? createViewDraft(tool.view)
+  const chooseTemplate = (template: string) => { updateTool(tool.operationId, 'view', template); updateView(tool.operationId, 'template', template) }
+  return <div className="workspace view-workspace"><section className="editor-intro"><p className="eyebrow">04 / Configure views</p><h2>Attach an intentional UI to every result.</h2><p>Template fields below bind to fixture paths for preview. Published runtime binding remains a later lifecycle step.</p></section><div className="view-tool-picker">{tools.map((item) => <button type="button" className={item.operationId === tool.operationId ? 'selected' : ''} key={item.operationId} onClick={() => setSelectedToolId(item.operationId)}>{item.name}<small>{item.view}</small></button>)}</div><section className="template-gallery"><p className="eyebrow">Template gallery</p><div>{['Summary card', 'Data table', 'Ranked list'].map((template) => <button type="button" className={view.template === template ? 'template selected' : 'template'} key={template} onClick={() => chooseTemplate(template)}><span className={`template-art ${template.replaceAll(' ', '-').toLowerCase()}`}><i /><i /><i /></span><strong>{template}</strong><small>{template === 'Summary card' ? 'Single object and key metrics' : template === 'Data table' ? 'Rows, metadata, and labels' : 'Sorted people or entities'}</small></button>)}</div></section><section className="binding-grid"><div className="binding-panel"><p className="eyebrow">Field bindings</p><h3>{tool.name}</h3><label>Primary label<select value={view.titleField} onChange={(event) => updateView(tool.operationId, 'titleField', event.target.value)}>{['full_name', 'title', 'login'].map((field) => <option key={field}>{field}</option>)}</select></label><label>Supporting detail<select value={view.detailField} onChange={(event) => updateView(tool.operationId, 'detailField', event.target.value)}>{['description', 'author', 'contributions'].map((field) => <option key={field}>{field}</option>)}</select></label><label>{view.template === 'Summary card' ? 'Primary metric' : 'Secondary metadata'}<select value={view.metricField} onChange={(event) => updateView(tool.operationId, 'metricField', event.target.value)}>{['stars', 'updatedAt', 'contributions', 'language'].map((field) => <option key={field}>{field}</option>)}</select></label><p className="binding-note">Binding discovery from response schemas is intentionally deferred. These controlled paths make the preview and configuration contract visible now.</p></div><ViewPreview view={view} /></section></div>
+}
+
+function summaryValue(field: string, fallback: string) {
+  const values: Record<string, string> = { full_name: previewData.full_name, description: previewData.description, stars: previewData.stars, forks: previewData.forks, language: previewData.language }
+  return values[field] ?? fallback
+}
+
+function ViewPreview({ view }: { view: ViewDraft }) {
+  if (view.template === 'Data table') return <section className="preview-panel"><p className="eyebrow">Live fixture preview</p><div className="preview-table"><header><strong>Issues</strong><span>2 rows</span></header>{previewData.issues.map((issue) => <article key={issue.title}><div><strong>{issue[view.titleField as keyof typeof issue] ?? issue.title}</strong><span>{issue[view.detailField as keyof typeof issue] ?? issue.author}</span></div><em>{issue[view.metricField as keyof typeof issue] ?? issue.updatedAt}</em></article>)}</div></section>
+  if (view.template === 'Ranked list') return <section className="preview-panel"><p className="eyebrow">Live fixture preview</p><div className="preview-rank"><h3>Top contributors</h3>{previewData.contributors.map((person, index) => <article key={person.login}><b>0{index + 1}</b><span>{person[view.titleField as keyof typeof person] ?? person.login}</span><strong>{person[view.metricField as keyof typeof person] ?? person.contributions}</strong></article>)}</div></section>
+  return <section className="preview-panel"><p className="eyebrow">Live fixture preview</p><div className="preview-summary"><span>Repository overview</span><h3>{summaryValue(view.titleField, previewData.full_name)}</h3><p>{summaryValue(view.detailField, previewData.description)}</p><strong>{summaryValue(view.metricField, previewData.stars)}<small>{view.metricField}</small></strong></div></section>
+}
+
+function Placeholder({ section }: { section: Exclude<Section, 'Build' | 'Tools' | 'Views'> }) { const copy: Record<Exclude<Section, 'Build' | 'Tools' | 'Views'>, string> = { Flows: 'Phase 2.4 will add constrained linear flows with inputs, tool calls, conditions, and results.', Test: 'Test runs will make input mappings, output data, and errors inspectable before publish.', Publish: 'Phase 2.3 will validate, version, diff, publish, and roll back configurations safely.' }; return <div className="placeholder"><p className="eyebrow">Planned workspace</p><h2>{section} is next in the lifecycle.</h2><p>{copy[section]}</p><span>Phase 2.2 in progress</span></div> }
 
 export default App

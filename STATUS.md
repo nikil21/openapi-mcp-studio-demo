@@ -2,7 +2,7 @@
 
 ## Milestone 0: Toolchain
 
-Status: Phase 1 complete and publicly deployed. Phase 2.1 API import and tool-curation slice complete locally.
+Status: Phase 1 complete and publicly deployed. Phase 2.2 view-builder slice complete locally.
 
 Completed on 2026-08-05:
 
@@ -51,6 +51,9 @@ Verification results:
 - Added a local Studio import API with public-HTTPS validation, private-network rejection, redirect blocking, timeout, and response cap.
 - Added remote OpenAPI import, focused support classification, three-tool selection, and editable local tool drafts to the standalone Studio.
 - Verified import of the public GitHub fixture and rejection of a localhost HTTP URL; Studio lint and production build pass.
+- Added a standalone Views workspace with Summary Card, Data Table, and Ranked List template selection.
+- Added controlled draft field bindings and fixture-backed previews for each template mode.
+- Studio lint and production build pass after the Phase 2.2 view-builder work.
 - Screenshot rendering through the mcp-use CLI timed out waiting for readiness; the tool and bound view resource were verified, but visual screenshot verification remains outstanding.
 - Deployment status: running.
 - Live MCP URL: `https://keen-forge-ocsbv.run.mcp-use.com/mcp`.
@@ -59,6 +62,6 @@ Verification results:
 
 Next tasks:
 
-1. Implement Phase 2.2 view-template gallery, field bindings, and live preview in the standalone Studio.
+1. Implement Phase 2.3 project persistence, draft/version storage, validation, and publish lifecycle.
 2. Capture manual Inspector screenshots; the framework screenshot CLI still times out waiting for view readiness.
 3. Record the two-minute demo and application video.

@@ -81,3 +81,7 @@ The Phase 2.0 Studio uses a separate React/Vite application under `studio/`. It 
 ## 2026-08-06: Import remote specifications through a local API boundary
 
 The standalone Studio does not fetch arbitrary URLs in browser code. Its local import API requires HTTPS, resolves and rejects private/local network targets, disallows redirects, limits response size, and uses a timeout. This is a development implementation of the server-side import boundary; it must be hosted with the Studio before public use.
+
+## 2026-08-06: Use constrained templates before a drag-and-drop canvas
+
+The Phase 2 View workspace offers three controlled templates and editable field-path bindings with fixture previews. This demonstrates intentional UI binding without presenting a generic page builder as an MCP product capability. Response-schema field discovery, component reordering, and a drag-and-drop editor remain later enhancements after persistence and publish lifecycle work.

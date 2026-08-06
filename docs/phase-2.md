@@ -47,6 +47,8 @@ Local implementation note: Phase 2.1 includes a local Studio import API at `stud
 
 Exit: A user can see and configure the UI attached to every tool before publishing.
 
+Local implementation note: Phase 2.2 provides a controlled template gallery, editable field-path bindings, and fixture-backed previews for the three initial templates. It does not yet infer fields from arbitrary response schemas, persist edits, reorder components by drag-and-drop, or apply the draft to the deployed runtime.
+
 ### 2.3: Publish Lifecycle
 
 - Persist projects, drafts, versions, and audit metadata in Supabase or Neon/Postgres.
