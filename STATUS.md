@@ -2,7 +2,7 @@
 
 ## Milestone 0: Toolchain
 
-Status: Phase 1 complete and publicly deployed. Phase 2.3 Studio persistence and publish lifecycle complete locally.
+Status: Phase 1 complete and publicly deployed. Phase 2.4 constrained flow-builder slice complete locally.
 
 Completed on 2026-08-05:
 
@@ -61,6 +61,8 @@ Verification results:
 - Verified local activation against Studio `v3`, including successful configured-tool execution.
 - Added Studio activation variables to Manufact Cloud and deployed the activation-enabled runtime.
 - Verified the public runtime startup loaded Studio `v3` and all three public GitHub tools executed with SummaryCard, DataTable, and RankedList resources.
+- Added a constrained Repository Briefing flow canvas with React Flow / XYFlow, shared inputs, optional tool steps, condition, terminal result, and fixture execution trace.
+- Studio lint and production build pass with the flow-builder slice.
 - Screenshot rendering through the mcp-use CLI timed out waiting for readiness; the tool and bound view resource were verified, but visual screenshot verification remains outstanding.
 - Deployment status: running.
 - Live MCP URL: `https://keen-forge-ocsbv.run.mcp-use.com/mcp`.
@@ -69,6 +71,6 @@ Verification results:
 
 Next tasks:
 
-1. Implement Phase 2.4 constrained flow builder using the verified published-version activation path.
-2. Capture manual Inspector screenshots; the framework screenshot CLI still times out waiting for view readiness.
-3. Record the two-minute demo and application video.
+1. Add flow persistence and publish the constrained flow contract into Studio versions.
+2. Add runtime execution for published read-only flows and a combined result view.
+3. Capture manual Inspector screenshots; the framework screenshot CLI still times out waiting for view readiness.

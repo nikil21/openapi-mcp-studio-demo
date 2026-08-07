@@ -74,6 +74,8 @@ Runtime activation note: the GitHub demo runtime can now load the active publish
 
 Exit: A configured flow can be tested and rendered as one MCP-facing experience.
 
+Local implementation note: Phase 2.4 now includes a Repository Briefing flow built with React Flow / XYFlow. It supports shared repository inputs, optional issues/contributors steps, one success condition, a terminal briefing view, draggable canvas layout, and a fixture execution trace. Flow persistence and runtime execution are intentionally deferred until the Studio flow contract is added to published runtime configurations.
+
 ### 2.5: Production Proof
 
 - Host the standalone Studio.
