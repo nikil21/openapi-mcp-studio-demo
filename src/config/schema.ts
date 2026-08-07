@@ -20,6 +20,15 @@ const toolConfigSchema = z.object({
   view: z.object({ type: viewTypeSchema }),
 });
 
+const flowConfigSchema = z.object({
+  name: z.string().regex(/^[a-z][a-z0-9_]*$/, "Use a lowercase snake_case flow name."),
+  description: z.string().min(1),
+  kind: z.literal("repository-briefing"),
+  includeIssues: z.boolean(),
+  includeContributors: z.boolean(),
+  view: z.object({ type: z.literal("briefing") }),
+});
+
 export const appConfigSchema = z
   .object({
     app: z.object({ name: z.string().min(1), version: z.string().min(1) }),
@@ -30,6 +39,7 @@ export const appConfigSchema = z
       optionalBearerEnv: z.string().min(1).optional(),
     }),
     tools: z.array(toolConfigSchema).min(1).max(3),
+    flows: z.array(flowConfigSchema).max(1).default([]),
   })
   .superRefine((config, context) => {
     const baseHost = new URL(config.api.baseUrl).hostname;

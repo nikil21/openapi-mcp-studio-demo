@@ -8,6 +8,7 @@ import './publish.css'
 type Section = 'Build' | 'Tools' | 'Views' | 'Flows' | 'Test' | 'Publish'
 type ToolDraft = { operationId: string; name: string; description: string; resultLimit: number; view: string }
 type ViewDraft = { template: string; titleField: string; detailField: string; metricField: string }
+type FlowDraft = { name: string; owner: string; repo: string; includeIssues: boolean; includeContributors: boolean }
 type PersistedProject = { id: string; name: string; api_source_url: string | null; active_version_id: string | null }
 type PersistedVersion = { id: string; version_number: number; state: 'draft' | 'published' | 'superseded'; created_at: string; published_at: string | null; config: unknown }
 
@@ -32,16 +33,17 @@ function createViewDraft(template: string): ViewDraft {
   return { template: 'Summary card', titleField: 'full_name', detailField: 'description', metricField: 'stars' }
 }
 
-function buildConfig(apiTitle: string, sourceUrl: string, tools: ToolDraft[], views: Record<string, ViewDraft>) {
+function buildConfig(apiTitle: string, sourceUrl: string, tools: ToolDraft[], views: Record<string, ViewDraft>, flow: FlowDraft) {
   const supportedGitHubOperations = new Set(['repos/get', 'issues/list-for-repo', 'repos/list-contributors'])
   const runtimeConfig = tools.length > 0 && tools.every((tool) => supportedGitHubOperations.has(tool.operationId))
     ? {
         app: { name: apiTitle, version: '0.2.0' },
         api: { baseUrl: 'https://api.github.com', allowedHosts: ['api.github.com'], defaultHeaders: { Accept: 'application/vnd.github+json' }, optionalBearerEnv: 'GITHUB_TOKEN' },
         tools: tools.map((tool) => ({ operationId: tool.operationId, name: tool.name, description: tool.description, inputLabels: {}, parameterMappings: tool.operationId === 'repos/get' ? {} : { limit: 'per_page' }, defaults: tool.operationId === 'issues/list-for-repo' ? { state: 'open' } : {}, resultLimit: tool.resultLimit, annotations: { readOnly: true, destructive: false, openWorld: true }, view: { type: tool.view === 'Summary card' ? 'summary-card' : tool.view === 'Ranked list' ? 'ranked-list' : 'data-table' } })),
+        flows: [{ name: 'get_repository_briefing', description: 'Build a concise public GitHub repository briefing from configured read-only tools.', kind: 'repository-briefing', includeIssues: flow.includeIssues, includeContributors: flow.includeContributors, view: { type: 'briefing' } }],
       }
     : undefined
-  return { app: { name: apiTitle, version: '0.2.0' }, apiSourceUrl: sourceUrl, tools, views, runtimeConfig, generatedAt: new Date().toISOString() }
+  return { app: { name: apiTitle, version: '0.2.0' }, apiSourceUrl: sourceUrl, tools, views, flow, runtimeConfig, generatedAt: new Date().toISOString() }
 }
 
 function toSnakeCase(value: string) {
@@ -70,6 +72,7 @@ function App() {
   const [selected, setSelected] = useState(initialOperations.filter((operation) => operation.supported).map((operation) => operation.id))
   const [tools, setTools] = useState(initialOperations.filter((operation) => operation.supported).map(createToolDraft))
   const [views, setViews] = useState<Record<string, ViewDraft>>(() => Object.fromEntries(initialOperations.filter((operation) => operation.supported).map((operation) => [operation.id, createViewDraft(createToolDraft(operation).view)])))
+  const [flow, setFlow] = useState<FlowDraft>({ name: 'Repository Briefing', owner: 'mcp-use', repo: 'mcp-use', includeIssues: true, includeContributors: true })
   const [project, setProject] = useState<PersistedProject | null>(null)
   const [versions, setVersions] = useState<PersistedVersion[]>([])
   const [persistenceMessage, setPersistenceMessage] = useState('')
@@ -80,7 +83,12 @@ function App() {
       if (!response.ok) return
       const payload = await response.json() as { projects: Array<PersistedProject & { versions: PersistedVersion[] }> }
       const existing = payload.projects[0]
-      if (existing) { setProject(existing); setVersions(existing.versions) }
+      if (existing) {
+        setProject(existing); setVersions(existing.versions)
+        const active = existing.versions.find((version) => version.id === existing.active_version_id)
+        const savedFlow = active?.config && typeof active.config === 'object' ? (active.config as { flow?: FlowDraft }).flow : undefined
+        if (savedFlow) setFlow(savedFlow)
+      }
     }).catch(() => undefined)
   }, [])
   const selectSection = (next: Section) => startTransition(() => setSection(next))
@@ -107,7 +115,7 @@ function App() {
   const saveDraft = async () => {
     setPersistenceMessage('Saving draft...')
     try {
-      const config = buildConfig(apiTitle, sourceUrl, tools, views)
+      const config = buildConfig(apiTitle, sourceUrl, tools, views, flow)
       const response = await fetch(project ? `/api/projects/${project.id}/versions` : '/api/projects', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(project ? { config } : { name: apiTitle, apiSourceUrl: sourceUrl, config }) })
       const payload = await response.json() as { project?: PersistedProject; version?: PersistedVersion; error?: string }
       if (!response.ok || !payload.version) throw new Error(payload.error ?? 'Could not save draft.')
@@ -126,7 +134,7 @@ function App() {
     } catch (error) { setPersistenceMessage(error instanceof Error ? error.message : 'Could not publish version.') }
   }
 
-  return <div className="app-shell"><aside className="sidebar"><a className="brand" href="#build" onClick={() => selectSection('Build')}><span className="brand-mark">M</span><span>mcp studio<small>PHASE 2</small></span></a><nav aria-label="Project sections"><p className="nav-label">Project</p>{sections.map((item, index) => <button className={section === item ? 'nav-item active' : 'nav-item'} key={item} onClick={() => selectSection(item)} type="button"><span>0{index + 1}</span>{item}</button>)}</nav><div className="sidebar-footer"><span className="status-dot" /> Local fixture mode<small>Import API available locally</small></div></aside><main><header className="topbar"><div><p className="eyebrow">Project / {apiTitle}</p><h1>{section}</h1></div><div className="topbar-actions"><span className="draft-pill">Draft v0.2</span><button type="button" onClick={() => selectSection('Publish')}>Publish</button></div></header>{section === 'Build' ? <BuildOverview sourceUrl={sourceUrl} setSourceUrl={setSourceUrl} importSource={importSource} importState={importState} message={message} apiTitle={apiTitle} apiVersion={apiVersion} operations={operations} selected={selected} toggleOperation={toggleOperation} /> : section === 'Tools' ? <ToolEditor tools={tools} operations={operations} updateTool={updateTool} /> : section === 'Views' ? <ViewEditor tools={tools} views={views} updateTool={updateTool} updateView={updateView} /> : section === 'Flows' ? <FlowWorkspace tools={tools} /> : section === 'Publish' ? <PublishWorkspace project={project} versions={versions} message={persistenceMessage} saveDraft={saveDraft} publishVersion={publishVersion} /> : <Placeholder section={section} />}</main></div>
+  return <div className="app-shell"><aside className="sidebar"><a className="brand" href="#build" onClick={() => selectSection('Build')}><span className="brand-mark">M</span><span>mcp studio<small>PHASE 2</small></span></a><nav aria-label="Project sections"><p className="nav-label">Project</p>{sections.map((item, index) => <button className={section === item ? 'nav-item active' : 'nav-item'} key={item} onClick={() => selectSection(item)} type="button"><span>0{index + 1}</span>{item}</button>)}</nav><div className="sidebar-footer"><span className="status-dot" /> Local fixture mode<small>Import API available locally</small></div></aside><main><header className="topbar"><div><p className="eyebrow">Project / {apiTitle}</p><h1>{section}</h1></div><div className="topbar-actions"><span className="draft-pill">Draft v0.2</span><button type="button" onClick={() => selectSection('Publish')}>Publish</button></div></header>{section === 'Build' ? <BuildOverview sourceUrl={sourceUrl} setSourceUrl={setSourceUrl} importSource={importSource} importState={importState} message={message} apiTitle={apiTitle} apiVersion={apiVersion} operations={operations} selected={selected} toggleOperation={toggleOperation} /> : section === 'Tools' ? <ToolEditor tools={tools} operations={operations} updateTool={updateTool} /> : section === 'Views' ? <ViewEditor tools={tools} views={views} updateTool={updateTool} updateView={updateView} /> : section === 'Flows' ? <FlowWorkspace tools={tools} flow={flow} onFlowChange={setFlow} /> : section === 'Publish' ? <PublishWorkspace project={project} versions={versions} message={persistenceMessage} saveDraft={saveDraft} publishVersion={publishVersion} /> : <Placeholder section={section} />}</main></div>
 }
 
 function BuildOverview({ sourceUrl, setSourceUrl, importSource, importState, message, apiTitle, apiVersion, operations, selected, toggleOperation }: { sourceUrl: string; setSourceUrl: (value: string) => void; importSource: () => void; importState: 'idle' | 'loading' | 'error'; message: string; apiTitle: string; apiVersion: string; operations: Operation[]; selected: string[]; toggleOperation: (operation: Operation) => void }) {

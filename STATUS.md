@@ -63,6 +63,8 @@ Verification results:
 - Verified the public runtime startup loaded Studio `v3` and all three public GitHub tools executed with SummaryCard, DataTable, and RankedList resources.
 - Added a constrained Repository Briefing flow canvas with React Flow / XYFlow, shared inputs, optional tool steps, condition, terminal result, and fixture execution trace.
 - Studio lint and production build pass with the flow-builder slice.
+- Persisted the constrained flow in Studio configuration versions and validate its shape server-side.
+- Published Studio `v4`, deployed the flow-enabled runtime, and verified the public `get_repository_briefing` tool with its combined briefing view.
 - Screenshot rendering through the mcp-use CLI timed out waiting for readiness; the tool and bound view resource were verified, but visual screenshot verification remains outstanding.
 - Deployment status: running.
 - Live MCP URL: `https://keen-forge-ocsbv.run.mcp-use.com/mcp`.
@@ -71,6 +73,6 @@ Verification results:
 
 Next tasks:
 
-1. Add flow persistence and publish the constrained flow contract into Studio versions.
-2. Add runtime execution for published read-only flows and a combined result view.
-3. Capture manual Inspector screenshots; the framework screenshot CLI still times out waiting for view readiness.
+1. Add explicit Studio controls to save/publish flow changes and surface runtime compatibility before publish.
+2. Capture manual Inspector screenshots; the framework screenshot CLI still times out waiting for view readiness.
+3. Record the two-minute demo and application video.

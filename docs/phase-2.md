@@ -76,6 +76,8 @@ Exit: A configured flow can be tested and rendered as one MCP-facing experience.
 
 Local implementation note: Phase 2.4 now includes a Repository Briefing flow built with React Flow / XYFlow. It supports shared repository inputs, optional issues/contributors steps, one success condition, a terminal briefing view, draggable canvas layout, and a fixture execution trace. Flow persistence and runtime execution are intentionally deferred until the Studio flow contract is added to published runtime configurations.
 
+Runtime implementation note: Studio `v4` now publishes the constrained flow into `runtimeConfig`. The MCP runtime registers `get_repository_briefing`, executes configured read-only tool steps through the same safe executor, and returns a combined briefing view. Flow changes still require a Studio publish followed by deliberate runtime redeploy.
+
 ### 2.5: Production Proof
 
 - Host the standalone Studio.

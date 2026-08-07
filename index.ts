@@ -100,6 +100,28 @@ function createInputSchema(operation: (typeof catalog.operations)[number], tool:
   return z.object(shape);
 }
 
+async function executeConfiguredOperation(
+  operation: (typeof catalog.operations)[number],
+  toolConfig: (typeof appConfig.tools)[number],
+  input: Record<string, unknown>,
+  requestId: string
+) {
+  const resultLimit = resolveResultLimit(toolConfig, input);
+  const parameters = mapRequestParameters(operation, toolConfig, input);
+  if (operation.parameters.some((parameter) => parameter.name === "per_page")) {
+    parameters.query.set("per_page", String(upstreamPageSize(operation.operationId, resultLimit)));
+  }
+  const url = buildRequestUrl(appConfig.api.baseUrl, operation.path, parameters);
+  const upstream = await executeGetRequest({
+    url,
+    api: appConfig.api,
+    toolName: toolConfig.name,
+    pathTemplate: operation.path,
+    requestId,
+  });
+  return normalizeGitHubResult(operation.operationId, upstream, resultLimit);
+}
+
 for (const toolConfig of appConfig.tools) {
   const operation = catalog.operations.find((candidate) => candidate.operationId === toolConfig.operationId);
   if (operation === undefined || !operation.supported) {
@@ -127,20 +149,7 @@ for (const toolConfig of appConfig.tools) {
     async (input) => {
         const requestId = crypto.randomUUID();
       try {
-        const resultLimit = resolveResultLimit(toolConfig, input as Record<string, unknown>);
-        const parameters = mapRequestParameters(operation, toolConfig, input as Record<string, unknown>);
-        if (operation.parameters.some((parameter) => parameter.name === "per_page")) {
-          parameters.query.set("per_page", String(upstreamPageSize(operation.operationId, resultLimit)));
-        }
-        const url = buildRequestUrl(appConfig.api.baseUrl, operation.path, parameters);
-        const upstream = await executeGetRequest({
-          url,
-          api: appConfig.api,
-          toolName: toolConfig.name,
-          pathTemplate: operation.path,
-          requestId,
-        });
-        const result = normalizeGitHubResult(operation.operationId, upstream, resultLimit);
+        const result = await executeConfiguredOperation(operation, toolConfig, input as Record<string, unknown>, requestId);
         return {
           content: [{ type: "text", text: `${toolConfig.name} completed. Request ID: ${requestId}` }],
           structuredContent: { requestId, operationId: operation.operationId, result },
@@ -152,6 +161,56 @@ for (const toolConfig of appConfig.tools) {
           structuredContent: { requestId: safeError.requestId, operationId: operation.operationId, result: null },
           isError: true,
         };
+      }
+    }
+  );
+}
+
+const briefingOutputSchema = z.object({
+  requestId: z.string(),
+  overview: z.unknown(),
+  issues: z.unknown().optional(),
+  contributors: z.unknown().optional(),
+});
+
+for (const flow of appConfig.flows) {
+  const overviewTool = appConfig.tools.find((tool) => tool.operationId === "repos/get");
+  const overviewOperation = catalog.operations.find((operation) => operation.operationId === "repos/get");
+  const issuesTool = appConfig.tools.find((tool) => tool.operationId === "issues/list-for-repo");
+  const issuesOperation = catalog.operations.find((operation) => operation.operationId === "issues/list-for-repo");
+  const contributorsTool = appConfig.tools.find((tool) => tool.operationId === "repos/list-contributors");
+  const contributorsOperation = catalog.operations.find((operation) => operation.operationId === "repos/list-contributors");
+  if (overviewTool === undefined || overviewOperation === undefined) throw new Error("Repository briefing requires the repository overview tool.");
+  if (flow.includeIssues && (issuesTool === undefined || issuesOperation === undefined)) throw new Error("Repository briefing requires the issues tool.");
+  if (flow.includeContributors && (contributorsTool === undefined || contributorsOperation === undefined)) throw new Error("Repository briefing requires the contributors tool.");
+
+  server.tool(
+    {
+      name: flow.name,
+      title: "Get repository briefing",
+      description: flow.description,
+      inputSchema: z.object({ owner: z.string().min(1), repo: z.string().min(1) }),
+      outputSchema: briefingOutputSchema,
+      view: { name: "briefing", prefersBorder: false, csp: { resourceDomains: ["https://avatars.githubusercontent.com"] } },
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
+    },
+    async ({ owner, repo }) => {
+      const requestId = crypto.randomUUID();
+      try {
+        const overview = await executeConfiguredOperation(overviewOperation, overviewTool, { owner, repo }, requestId);
+        const issues = flow.includeIssues && issuesOperation !== undefined && issuesTool !== undefined
+          ? await executeConfiguredOperation(issuesOperation, issuesTool, { owner, repo }, requestId)
+          : undefined;
+        const contributors = flow.includeContributors && contributorsOperation !== undefined && contributorsTool !== undefined
+          ? await executeConfiguredOperation(contributorsOperation, contributorsTool, { owner, repo }, requestId)
+          : undefined;
+        return {
+          content: [{ type: "text", text: `Repository briefing completed. Request ID: ${requestId}` }],
+          structuredContent: { requestId, overview, ...(issues === undefined ? {} : { issues }), ...(contributors === undefined ? {} : { contributors }) },
+        };
+      } catch (error) {
+        const safeError = error instanceof SafeExecutionError ? error : new SafeExecutionError("Flow execution failed.", requestId);
+        return { content: [{ type: "text", text: `${safeError.message} Request ID: ${safeError.requestId}` }], structuredContent: { requestId: safeError.requestId, overview: null }, isError: true };
       }
     }
   );

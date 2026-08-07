@@ -40,5 +40,15 @@
       "annotations": { "readOnly": true, "destructive": false, "openWorld": true },
       "view": { "type": "ranked-list" }
     }
+  ],
+  "flows": [
+    {
+      "name": "get_repository_briefing",
+      "description": "Build a concise public GitHub repository briefing from configured read-only tools.",
+      "kind": "repository-briefing",
+      "includeIssues": true,
+      "includeContributors": true,
+      "view": { "type": "briefing" }
+    }
   ]
 }

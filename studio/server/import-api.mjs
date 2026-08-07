@@ -71,9 +71,11 @@ function validateStudioConfig(config) {
   const app = config.app
   const tools = config.tools
   const views = config.views
+  const flow = config.flow
   if (app === null || typeof app !== 'object' || typeof app.name !== 'string' || app.name.length === 0) issues.push('Application name is required.')
   if (!Array.isArray(tools) || tools.length < 1 || tools.length > 3) issues.push('Configuration must contain one to three tools.')
   if (views === null || typeof views !== 'object' || Array.isArray(views)) issues.push('Configuration must include view bindings.')
+  if (flow !== undefined && (flow === null || typeof flow !== 'object' || typeof flow.name !== 'string' || typeof flow.owner !== 'string' || typeof flow.repo !== 'string' || typeof flow.includeIssues !== 'boolean' || typeof flow.includeContributors !== 'boolean')) issues.push('Flow configuration is invalid.')
   return issues
 }
 
