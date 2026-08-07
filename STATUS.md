@@ -2,7 +2,7 @@
 
 ## Milestone 0: Toolchain
 
-Status: Phase 1 complete and publicly deployed. Phase 2.2 view-builder slice complete locally.
+Status: Phase 1 complete and publicly deployed. Phase 2.3 Studio persistence and publish lifecycle complete locally.
 
 Completed on 2026-08-05:
 
@@ -54,6 +54,9 @@ Verification results:
 - Added a standalone Views workspace with Summary Card, Data Table, and Ranked List template selection.
 - Added controlled draft field bindings and fixture-backed previews for each template mode.
 - Studio lint and production build pass after the Phase 2.2 view-builder work.
+- Connected the local Studio API to Supabase through a server-only service-role key.
+- Added persisted projects, immutable draft/published/superseded configuration versions, active-version pointer updates, and audit events.
+- Verified project creation, invalid-config rejection, draft version creation, transactional publish, automatic supersession, audit retrieval, and persistence health.
 - Screenshot rendering through the mcp-use CLI timed out waiting for readiness; the tool and bound view resource were verified, but visual screenshot verification remains outstanding.
 - Deployment status: running.
 - Live MCP URL: `https://keen-forge-ocsbv.run.mcp-use.com/mcp`.
@@ -62,6 +65,6 @@ Verification results:
 
 Next tasks:
 
-1. Implement Phase 2.3 project persistence, draft/version storage, validation, and publish lifecycle.
-2. Capture manual Inspector screenshots; the framework screenshot CLI still times out waiting for view readiness.
-3. Record the two-minute demo and application video.
+1. Integrate the published Studio version into a controlled runtime activation path for the Manufact-hosted MCP server.
+2. Implement Phase 2.4 constrained flow builder after activation semantics are defined.
+3. Capture manual Inspector screenshots; the framework screenshot CLI still times out waiting for view readiness.

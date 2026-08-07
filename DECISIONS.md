@@ -85,3 +85,11 @@ The standalone Studio does not fetch arbitrary URLs in browser code. Its local i
 ## 2026-08-06: Use constrained templates before a drag-and-drop canvas
 
 The Phase 2 View workspace offers three controlled templates and editable field-path bindings with fixture previews. This demonstrates intentional UI binding without presenting a generic page builder as an MCP product capability. Response-schema field discovery, component reordering, and a drag-and-drop editor remain later enhancements after persistence and publish lifecycle work.
+
+## 2026-08-06: Publish immutable Studio versions through Supabase
+
+The Studio API uses the server-only Supabase service-role key to create projects, save immutable configuration versions, validate draft shape, and publish versions transactionally. Publishing supersedes the prior published Studio version, sets one active-version pointer, and records an audit event. The browser never receives privileged database credentials.
+
+## 2026-08-06: Separate Studio publish from runtime activation
+
+The active Studio version is not yet loaded by the Manufact-hosted MCP runtime. Keeping those boundaries separate prevents a browser-triggered configuration edit from silently altering a public runtime. The next slice must define a controlled runtime activation and rollback path before a published version affects tools or views.

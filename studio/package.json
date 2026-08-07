@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:api": "node --watch server/import-api.mjs",
+    "dev:api": "node --env-file-if-exists=.env.local --watch server/import-api.mjs",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview"

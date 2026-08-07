@@ -58,6 +58,10 @@ Local implementation note: Phase 2.2 provides a controlled template gallery, edi
 
 Exit: Publishing a config version changes the runtime only through a validated, traceable release path.
 
+Implementation note: the initial Supabase schema and local environment contract are in `studio/supabase/` and `studio/.env.example`. See [`supabase-setup.md`](supabase-setup.md) for the account setup boundary.
+
+Local implementation note: Phase 2.3 now persists projects and immutable draft/published/superseded versions through the server-side Studio API. Publishing transactionally updates the active Studio version and audit log. It does not yet make the Manufact-hosted runtime load that version; that requires the next runtime activation integration.
+
 ### 2.4: Constrained Flow Builder
 
 - Build linear flows with a maximum of five nodes using React Flow / XYFlow.

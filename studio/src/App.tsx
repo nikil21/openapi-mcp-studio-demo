@@ -1,11 +1,14 @@
-import { startTransition, useState } from 'react'
+import { startTransition, useEffect, useState } from 'react'
 import { classifyOpenApi, type Operation } from './lib/openapi'
 import './App.css'
 import './views.css'
+import './publish.css'
 
 type Section = 'Build' | 'Tools' | 'Views' | 'Flows' | 'Test' | 'Publish'
 type ToolDraft = { operationId: string; name: string; description: string; resultLimit: number; view: string }
 type ViewDraft = { template: string; titleField: string; detailField: string; metricField: string }
+type PersistedProject = { id: string; name: string; api_source_url: string | null; active_version_id: string | null }
+type PersistedVersion = { id: string; version_number: number; state: 'draft' | 'published' | 'superseded'; created_at: string; published_at: string | null; config: unknown }
 
 const sections: Section[] = ['Build', 'Tools', 'Views', 'Flows', 'Test', 'Publish']
 const defaultSource = 'https://raw.githubusercontent.com/nikil21/openapi-mcp-studio-demo/main/examples/github-openapi-subset.json'
@@ -26,6 +29,10 @@ function createViewDraft(template: string): ViewDraft {
   if (template === 'Data table') return { template, titleField: 'title', detailField: 'author', metricField: 'updatedAt' }
   if (template === 'Ranked list') return { template, titleField: 'login', detailField: 'contributions', metricField: 'contributions' }
   return { template: 'Summary card', titleField: 'full_name', detailField: 'description', metricField: 'stars' }
+}
+
+function buildConfig(apiTitle: string, sourceUrl: string, tools: ToolDraft[], views: Record<string, ViewDraft>) {
+  return { app: { name: apiTitle, version: '0.2.0' }, apiSourceUrl: sourceUrl, tools, views, generatedAt: new Date().toISOString() }
 }
 
 function toSnakeCase(value: string) {
@@ -54,8 +61,19 @@ function App() {
   const [selected, setSelected] = useState(initialOperations.filter((operation) => operation.supported).map((operation) => operation.id))
   const [tools, setTools] = useState(initialOperations.filter((operation) => operation.supported).map(createToolDraft))
   const [views, setViews] = useState<Record<string, ViewDraft>>(() => Object.fromEntries(initialOperations.filter((operation) => operation.supported).map((operation) => [operation.id, createViewDraft(createToolDraft(operation).view)])))
+  const [project, setProject] = useState<PersistedProject | null>(null)
+  const [versions, setVersions] = useState<PersistedVersion[]>([])
+  const [persistenceMessage, setPersistenceMessage] = useState('')
   const [importState, setImportState] = useState<'idle' | 'loading' | 'error'>('idle')
   const [message, setMessage] = useState('')
+  useEffect(() => {
+    void fetch('/api/projects').then(async (response) => {
+      if (!response.ok) return
+      const payload = await response.json() as { projects: Array<PersistedProject & { versions: PersistedVersion[] }> }
+      const existing = payload.projects[0]
+      if (existing) { setProject(existing); setVersions(existing.versions) }
+    }).catch(() => undefined)
+  }, [])
   const selectSection = (next: Section) => startTransition(() => setSection(next))
   const importSource = async () => {
     setImportState('loading'); setMessage('')
@@ -77,8 +95,29 @@ function App() {
   }
   const updateTool = (operationId: string, key: keyof Omit<ToolDraft, 'operationId'>, value: string | number) => setTools(tools.map((tool) => tool.operationId === operationId ? { ...tool, [key]: value } : tool))
   const updateView = (operationId: string, key: keyof ViewDraft, value: string) => setViews({ ...views, [operationId]: { ...(views[operationId] ?? createViewDraft('Summary card')), [key]: value } })
+  const saveDraft = async () => {
+    setPersistenceMessage('Saving draft...')
+    try {
+      const config = buildConfig(apiTitle, sourceUrl, tools, views)
+      const response = await fetch(project ? `/api/projects/${project.id}/versions` : '/api/projects', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(project ? { config } : { name: apiTitle, apiSourceUrl: sourceUrl, config }) })
+      const payload = await response.json() as { project?: PersistedProject; version?: PersistedVersion; error?: string }
+      if (!response.ok || !payload.version) throw new Error(payload.error ?? 'Could not save draft.')
+      if (payload.project) setProject(payload.project)
+      setVersions([payload.version, ...versions]); setPersistenceMessage(`Draft v${payload.version.version_number} saved in Supabase.`)
+    } catch (error) { setPersistenceMessage(error instanceof Error ? error.message : 'Could not save draft.') }
+  }
+  const publishVersion = async (version: PersistedVersion) => {
+    if (!project) return
+    setPersistenceMessage(`Publishing v${version.version_number}...`)
+    try {
+      const response = await fetch(`/api/projects/${project.id}/publish`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ versionId: version.id }) })
+      const payload = await response.json() as { version?: PersistedVersion; error?: string }
+      if (!response.ok || !payload.version) throw new Error(payload.error ?? 'Could not publish version.')
+      setVersions(versions.map((item) => item.id === payload.version?.id ? payload.version : item.state === 'published' ? { ...item, state: 'superseded' } : item)); setProject({ ...project, active_version_id: payload.version.id }); setPersistenceMessage(`Published v${payload.version.version_number}. Runtime activation is the next controlled step.`)
+    } catch (error) { setPersistenceMessage(error instanceof Error ? error.message : 'Could not publish version.') }
+  }
 
-  return <div className="app-shell"><aside className="sidebar"><a className="brand" href="#build" onClick={() => selectSection('Build')}><span className="brand-mark">M</span><span>mcp studio<small>PHASE 2</small></span></a><nav aria-label="Project sections"><p className="nav-label">Project</p>{sections.map((item, index) => <button className={section === item ? 'nav-item active' : 'nav-item'} key={item} onClick={() => selectSection(item)} type="button"><span>0{index + 1}</span>{item}</button>)}</nav><div className="sidebar-footer"><span className="status-dot" /> Local fixture mode<small>Import API available locally</small></div></aside><main><header className="topbar"><div><p className="eyebrow">Project / {apiTitle}</p><h1>{section}</h1></div><div className="topbar-actions"><span className="draft-pill">Draft v0.2</span><button type="button" onClick={() => selectSection('Publish')}>Publish</button></div></header>{section === 'Build' ? <BuildOverview sourceUrl={sourceUrl} setSourceUrl={setSourceUrl} importSource={importSource} importState={importState} message={message} apiTitle={apiTitle} apiVersion={apiVersion} operations={operations} selected={selected} toggleOperation={toggleOperation} /> : section === 'Tools' ? <ToolEditor tools={tools} operations={operations} updateTool={updateTool} /> : section === 'Views' ? <ViewEditor tools={tools} views={views} updateTool={updateTool} updateView={updateView} /> : <Placeholder section={section} />}</main></div>
+  return <div className="app-shell"><aside className="sidebar"><a className="brand" href="#build" onClick={() => selectSection('Build')}><span className="brand-mark">M</span><span>mcp studio<small>PHASE 2</small></span></a><nav aria-label="Project sections"><p className="nav-label">Project</p>{sections.map((item, index) => <button className={section === item ? 'nav-item active' : 'nav-item'} key={item} onClick={() => selectSection(item)} type="button"><span>0{index + 1}</span>{item}</button>)}</nav><div className="sidebar-footer"><span className="status-dot" /> Local fixture mode<small>Import API available locally</small></div></aside><main><header className="topbar"><div><p className="eyebrow">Project / {apiTitle}</p><h1>{section}</h1></div><div className="topbar-actions"><span className="draft-pill">Draft v0.2</span><button type="button" onClick={() => selectSection('Publish')}>Publish</button></div></header>{section === 'Build' ? <BuildOverview sourceUrl={sourceUrl} setSourceUrl={setSourceUrl} importSource={importSource} importState={importState} message={message} apiTitle={apiTitle} apiVersion={apiVersion} operations={operations} selected={selected} toggleOperation={toggleOperation} /> : section === 'Tools' ? <ToolEditor tools={tools} operations={operations} updateTool={updateTool} /> : section === 'Views' ? <ViewEditor tools={tools} views={views} updateTool={updateTool} updateView={updateView} /> : section === 'Publish' ? <PublishWorkspace project={project} versions={versions} message={persistenceMessage} saveDraft={saveDraft} publishVersion={publishVersion} /> : <Placeholder section={section} />}</main></div>
 }
 
 function BuildOverview({ sourceUrl, setSourceUrl, importSource, importState, message, apiTitle, apiVersion, operations, selected, toggleOperation }: { sourceUrl: string; setSourceUrl: (value: string) => void; importSource: () => void; importState: 'idle' | 'loading' | 'error'; message: string; apiTitle: string; apiVersion: string; operations: Operation[]; selected: string[]; toggleOperation: (operation: Operation) => void }) {
@@ -109,6 +148,10 @@ function ViewPreview({ view }: { view: ViewDraft }) {
   return <section className="preview-panel"><p className="eyebrow">Live fixture preview</p><div className="preview-summary"><span>Repository overview</span><h3>{summaryValue(view.titleField, previewData.full_name)}</h3><p>{summaryValue(view.detailField, previewData.description)}</p><strong>{summaryValue(view.metricField, previewData.stars)}<small>{view.metricField}</small></strong></div></section>
 }
 
-function Placeholder({ section }: { section: Exclude<Section, 'Build' | 'Tools' | 'Views'> }) { const copy: Record<Exclude<Section, 'Build' | 'Tools' | 'Views'>, string> = { Flows: 'Phase 2.4 will add constrained linear flows with inputs, tool calls, conditions, and results.', Test: 'Test runs will make input mappings, output data, and errors inspectable before publish.', Publish: 'Phase 2.3 will validate, version, diff, publish, and roll back configurations safely.' }; return <div className="placeholder"><p className="eyebrow">Planned workspace</p><h2>{section} is next in the lifecycle.</h2><p>{copy[section]}</p><span>Phase 2.2 in progress</span></div> }
+function PublishWorkspace({ project, versions, message, saveDraft, publishVersion }: { project: PersistedProject | null; versions: PersistedVersion[]; message: string; saveDraft: () => void; publishVersion: (version: PersistedVersion) => void }) {
+  return <div className="workspace publish-workspace"><section className="editor-intro"><p className="eyebrow">06 / Publish lifecycle</p><h2>Make configuration changes traceable.</h2><p>Drafts persist in Supabase. Publishing changes the active Studio version, while runtime activation remains a separately controlled release boundary.</p></section><section className="publish-summary"><div><span>PROJECT</span><strong>{project?.name ?? 'Not persisted yet'}</strong></div><div><span>ACTIVE VERSION</span><strong>{versions.find((version) => version.id === project?.active_version_id)?.version_number ? `v${versions.find((version) => version.id === project?.active_version_id)?.version_number}` : 'None'}</strong></div><button type="button" onClick={saveDraft}>Save new draft</button></section><p className="publish-message">{message || 'Save the current local configuration as an immutable draft version.'}</p><section className="version-list"><div className="panel-heading"><div><p className="eyebrow">Version history</p><h3>Configuration releases</h3></div></div>{versions.length === 0 ? <p className="empty-version">No versions saved yet.</p> : versions.map((version) => <article key={version.id}><div><strong>v{version.version_number}</strong><span>{new Date(version.created_at).toLocaleString()}</span></div><span className={`version-state ${version.state}`}>{version.state}</span>{version.state === 'draft' ? <button type="button" onClick={() => publishVersion(version)}>Publish version</button> : <span className="version-action">{version.state === 'published' ? 'Active Studio version' : 'Superseded'}</span>}</article>)}</section></div>
+}
+
+function Placeholder({ section }: { section: Exclude<Section, 'Build' | 'Tools' | 'Views' | 'Publish'> }) { const copy: Record<Exclude<Section, 'Build' | 'Tools' | 'Views' | 'Publish'>, string> = { Flows: 'Phase 2.4 will add constrained linear flows with inputs, tool calls, conditions, and results.', Test: 'Test runs will make input mappings, output data, and errors inspectable before publish.' }; return <div className="placeholder"><p className="eyebrow">Planned workspace</p><h2>{section} is next in the lifecycle.</h2><p>{copy[section]}</p><span>Phase 2.3 in progress</span></div> }
 
 export default App
