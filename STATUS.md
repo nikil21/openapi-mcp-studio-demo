@@ -57,6 +57,10 @@ Verification results:
 - Connected the local Studio API to Supabase through a server-only service-role key.
 - Added persisted projects, immutable draft/published/superseded configuration versions, active-version pointer updates, and audit events.
 - Verified project creation, invalid-config rejection, draft version creation, transactional publish, automatic supersession, audit retrieval, and persistence health.
+- Added optional runtime activation from the active published Studio version at process startup.
+- Verified local activation against Studio `v3`, including successful configured-tool execution.
+- Added Studio activation variables to Manufact Cloud and deployed the activation-enabled runtime.
+- Verified the public runtime startup loaded Studio `v3` and all three public GitHub tools executed with SummaryCard, DataTable, and RankedList resources.
 - Screenshot rendering through the mcp-use CLI timed out waiting for readiness; the tool and bound view resource were verified, but visual screenshot verification remains outstanding.
 - Deployment status: running.
 - Live MCP URL: `https://keen-forge-ocsbv.run.mcp-use.com/mcp`.
@@ -65,6 +69,6 @@ Verification results:
 
 Next tasks:
 
-1. Integrate the published Studio version into a controlled runtime activation path for the Manufact-hosted MCP server.
-2. Implement Phase 2.4 constrained flow builder after activation semantics are defined.
-3. Capture manual Inspector screenshots; the framework screenshot CLI still times out waiting for view readiness.
+1. Implement Phase 2.4 constrained flow builder using the verified published-version activation path.
+2. Capture manual Inspector screenshots; the framework screenshot CLI still times out waiting for view readiness.
+3. Record the two-minute demo and application video.

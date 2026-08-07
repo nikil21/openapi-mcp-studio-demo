@@ -32,7 +32,15 @@ function createViewDraft(template: string): ViewDraft {
 }
 
 function buildConfig(apiTitle: string, sourceUrl: string, tools: ToolDraft[], views: Record<string, ViewDraft>) {
-  return { app: { name: apiTitle, version: '0.2.0' }, apiSourceUrl: sourceUrl, tools, views, generatedAt: new Date().toISOString() }
+  const supportedGitHubOperations = new Set(['repos/get', 'issues/list-for-repo', 'repos/list-contributors'])
+  const runtimeConfig = tools.length > 0 && tools.every((tool) => supportedGitHubOperations.has(tool.operationId))
+    ? {
+        app: { name: apiTitle, version: '0.2.0' },
+        api: { baseUrl: 'https://api.github.com', allowedHosts: ['api.github.com'], defaultHeaders: { Accept: 'application/vnd.github+json' }, optionalBearerEnv: 'GITHUB_TOKEN' },
+        tools: tools.map((tool) => ({ operationId: tool.operationId, name: tool.name, description: tool.description, inputLabels: {}, parameterMappings: tool.operationId === 'repos/get' ? {} : { limit: 'per_page' }, defaults: tool.operationId === 'issues/list-for-repo' ? { state: 'open' } : {}, resultLimit: tool.resultLimit, annotations: { readOnly: true, destructive: false, openWorld: true }, view: { type: tool.view === 'Summary card' ? 'summary-card' : tool.view === 'Ranked list' ? 'ranked-list' : 'data-table' } })),
+      }
+    : undefined
+  return { app: { name: apiTitle, version: '0.2.0' }, apiSourceUrl: sourceUrl, tools, views, runtimeConfig, generatedAt: new Date().toISOString() }
 }
 
 function toSnakeCase(value: string) {

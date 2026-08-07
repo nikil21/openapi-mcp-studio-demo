@@ -93,3 +93,11 @@ The Studio API uses the server-only Supabase service-role key to create projects
 ## 2026-08-06: Separate Studio publish from runtime activation
 
 The active Studio version is not yet loaded by the Manufact-hosted MCP runtime. Keeping those boundaries separate prevents a browser-triggered configuration edit from silently altering a public runtime. The next slice must define a controlled runtime activation and rollback path before a published version affects tools or views.
+
+## 2026-08-07: Activate runtime configuration only at process startup
+
+The runtime reads the active published Studio configuration only when the process starts. A Studio publish changes the desired active version, but a deliberate runtime redeploy applies it. If activation settings are absent, the checked-in configuration remains the fallback. If activation settings are present but the published configuration is unavailable or incompatible, startup fails rather than silently falling back.
+
+## 2026-08-07: Verify Studio activation in Manufact Cloud
+
+The Manufact-hosted runtime successfully loaded the active published Studio `v3` configuration at startup and executed all three configured GitHub tools with their assigned views. This establishes the controlled path from Studio draft, to published version, to deliberate runtime redeploy.

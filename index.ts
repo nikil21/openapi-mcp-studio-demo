@@ -19,7 +19,7 @@ const server = new MCPServer({
 });
 
 const catalog = parseOpenApiDocument(githubOpenApi);
-const appConfig = loadAppConfig();
+const appConfig = await loadAppConfig();
 
 const operationSchema = z.object({
   operationId: z.string(),
