@@ -4,11 +4,12 @@ import { FlowWorkspace } from './FlowWorkspace'
 import './App.css'
 import './views.css'
 import './publish.css'
+import './polish.css'
 
 type Section = 'Build' | 'Tools' | 'Views' | 'Flows' | 'Test' | 'Publish'
 type ToolDraft = { operationId: string; name: string; description: string; resultLimit: number; view: string }
 type ViewDraft = { template: string; titleField: string; detailField: string; metricField: string }
-type FlowDraft = { name: string; owner: string; repo: string; includeIssues: boolean; includeContributors: boolean }
+type FlowDraft = { name: string; owner: string; repo: string; includeIssues: boolean; includeContributors: boolean; positions?: Record<string, { x: number; y: number }> }
 type PersistedProject = { id: string; name: string; api_source_url: string | null; active_version_id: string | null }
 type PersistedVersion = { id: string; version_number: number; state: 'draft' | 'published' | 'superseded'; created_at: string; published_at: string | null; config: unknown }
 
@@ -35,7 +36,8 @@ function createViewDraft(template: string): ViewDraft {
 
 function buildConfig(apiTitle: string, sourceUrl: string, tools: ToolDraft[], views: Record<string, ViewDraft>, flow: FlowDraft) {
   const supportedGitHubOperations = new Set(['repos/get', 'issues/list-for-repo', 'repos/list-contributors'])
-  const runtimeConfig = tools.length > 0 && tools.every((tool) => supportedGitHubOperations.has(tool.operationId))
+  const runtimeCompatible = tools.length > 0 && tools.every((tool) => supportedGitHubOperations.has(tool.operationId))
+  const runtimeConfig = runtimeCompatible
     ? {
         app: { name: apiTitle, version: '0.2.0' },
         api: { baseUrl: 'https://api.github.com', allowedHosts: ['api.github.com'], defaultHeaders: { Accept: 'application/vnd.github+json' }, optionalBearerEnv: 'GITHUB_TOKEN' },
@@ -44,6 +46,11 @@ function buildConfig(apiTitle: string, sourceUrl: string, tools: ToolDraft[], vi
       }
     : undefined
   return { app: { name: apiTitle, version: '0.2.0' }, apiSourceUrl: sourceUrl, tools, views, flow, runtimeConfig, generatedAt: new Date().toISOString() }
+}
+
+function runtimeCompatibility(tools: ToolDraft[]) {
+  const supportedGitHubOperations = new Set(['repos/get', 'issues/list-for-repo', 'repos/list-contributors'])
+  return tools.length > 0 && tools.every((tool) => supportedGitHubOperations.has(tool.operationId))
 }
 
 function toSnakeCase(value: string) {
@@ -72,7 +79,7 @@ function App() {
   const [selected, setSelected] = useState(initialOperations.filter((operation) => operation.supported).map((operation) => operation.id))
   const [tools, setTools] = useState(initialOperations.filter((operation) => operation.supported).map(createToolDraft))
   const [views, setViews] = useState<Record<string, ViewDraft>>(() => Object.fromEntries(initialOperations.filter((operation) => operation.supported).map((operation) => [operation.id, createViewDraft(createToolDraft(operation).view)])))
-  const [flow, setFlow] = useState<FlowDraft>({ name: 'Repository Briefing', owner: 'mcp-use', repo: 'mcp-use', includeIssues: true, includeContributors: true })
+  const [flow, setFlow] = useState<FlowDraft>({ name: 'Repository Briefing', owner: 'mcp-use', repo: 'mcp-use', includeIssues: true, includeContributors: true, positions: {} })
   const [project, setProject] = useState<PersistedProject | null>(null)
   const [versions, setVersions] = useState<PersistedVersion[]>([])
   const [persistenceMessage, setPersistenceMessage] = useState('')
@@ -112,6 +119,7 @@ function App() {
   }
   const updateTool = (operationId: string, key: keyof Omit<ToolDraft, 'operationId'>, value: string | number) => setTools(tools.map((tool) => tool.operationId === operationId ? { ...tool, [key]: value } : tool))
   const updateView = (operationId: string, key: keyof ViewDraft, value: string) => setViews({ ...views, [operationId]: { ...(views[operationId] ?? createViewDraft('Summary card')), [key]: value } })
+  const compatible = runtimeCompatibility(tools)
   const saveDraft = async () => {
     setPersistenceMessage('Saving draft...')
     try {
@@ -134,7 +142,7 @@ function App() {
     } catch (error) { setPersistenceMessage(error instanceof Error ? error.message : 'Could not publish version.') }
   }
 
-  return <div className="app-shell"><aside className="sidebar"><a className="brand" href="#build" onClick={() => selectSection('Build')}><span className="brand-mark">M</span><span>mcp studio<small>PHASE 2</small></span></a><nav aria-label="Project sections"><p className="nav-label">Project</p>{sections.map((item, index) => <button className={section === item ? 'nav-item active' : 'nav-item'} key={item} onClick={() => selectSection(item)} type="button"><span>0{index + 1}</span>{item}</button>)}</nav><div className="sidebar-footer"><span className="status-dot" /> Local fixture mode<small>Import API available locally</small></div></aside><main><header className="topbar"><div><p className="eyebrow">Project / {apiTitle}</p><h1>{section}</h1></div><div className="topbar-actions"><span className="draft-pill">Draft v0.2</span><button type="button" onClick={() => selectSection('Publish')}>Publish</button></div></header>{section === 'Build' ? <BuildOverview sourceUrl={sourceUrl} setSourceUrl={setSourceUrl} importSource={importSource} importState={importState} message={message} apiTitle={apiTitle} apiVersion={apiVersion} operations={operations} selected={selected} toggleOperation={toggleOperation} /> : section === 'Tools' ? <ToolEditor tools={tools} operations={operations} updateTool={updateTool} /> : section === 'Views' ? <ViewEditor tools={tools} views={views} updateTool={updateTool} updateView={updateView} /> : section === 'Flows' ? <FlowWorkspace tools={tools} flow={flow} onFlowChange={setFlow} /> : section === 'Publish' ? <PublishWorkspace project={project} versions={versions} message={persistenceMessage} saveDraft={saveDraft} publishVersion={publishVersion} /> : <Placeholder section={section} />}</main></div>
+  return <div className="app-shell"><aside className="sidebar"><a className="brand" href="#build" onClick={() => selectSection('Build')}><span className="brand-mark">M</span><span>mcp studio<small>PHASE 2</small></span></a><nav aria-label="Project sections"><p className="nav-label">Project</p>{sections.map((item, index) => <button className={section === item ? 'nav-item active' : 'nav-item'} key={item} onClick={() => selectSection(item)} type="button"><span>0{index + 1}</span>{item}</button>)}</nav><div className="sidebar-footer"><span className="status-dot" /> Local fixture mode<small>Import API available locally</small></div></aside><main><header className="topbar"><div><p className="eyebrow">Project / {apiTitle}</p><h1>{section}</h1></div><div className="topbar-actions"><span className="draft-pill">Draft v0.2</span><button type="button" onClick={() => selectSection('Publish')}>Publish</button></div></header>{section === 'Build' ? <BuildOverview sourceUrl={sourceUrl} setSourceUrl={setSourceUrl} importSource={importSource} importState={importState} message={message} apiTitle={apiTitle} apiVersion={apiVersion} operations={operations} selected={selected} toggleOperation={toggleOperation} /> : section === 'Tools' ? <ToolEditor tools={tools} operations={operations} updateTool={updateTool} /> : section === 'Views' ? <ViewEditor tools={tools} views={views} updateTool={updateTool} updateView={updateView} /> : section === 'Flows' ? <FlowWorkspace tools={tools} flow={flow} onFlowChange={setFlow} onSaveDraft={saveDraft} message={persistenceMessage} /> : section === 'Publish' ? <PublishWorkspace project={project} versions={versions} message={persistenceMessage} saveDraft={saveDraft} publishVersion={publishVersion} runtimeCompatible={compatible} /> : <Placeholder section={section} />}</main></div>
 }
 
 function BuildOverview({ sourceUrl, setSourceUrl, importSource, importState, message, apiTitle, apiVersion, operations, selected, toggleOperation }: { sourceUrl: string; setSourceUrl: (value: string) => void; importSource: () => void; importState: 'idle' | 'loading' | 'error'; message: string; apiTitle: string; apiVersion: string; operations: Operation[]; selected: string[]; toggleOperation: (operation: Operation) => void }) {
@@ -165,8 +173,8 @@ function ViewPreview({ view }: { view: ViewDraft }) {
   return <section className="preview-panel"><p className="eyebrow">Live fixture preview</p><div className="preview-summary"><span>Repository overview</span><h3>{summaryValue(view.titleField, previewData.full_name)}</h3><p>{summaryValue(view.detailField, previewData.description)}</p><strong>{summaryValue(view.metricField, previewData.stars)}<small>{view.metricField}</small></strong></div></section>
 }
 
-function PublishWorkspace({ project, versions, message, saveDraft, publishVersion }: { project: PersistedProject | null; versions: PersistedVersion[]; message: string; saveDraft: () => void; publishVersion: (version: PersistedVersion) => void }) {
-  return <div className="workspace publish-workspace"><section className="editor-intro"><p className="eyebrow">06 / Publish lifecycle</p><h2>Make configuration changes traceable.</h2><p>Drafts persist in Supabase. Publishing changes the active Studio version, while runtime activation remains a separately controlled release boundary.</p></section><section className="publish-summary"><div><span>PROJECT</span><strong>{project?.name ?? 'Not persisted yet'}</strong></div><div><span>ACTIVE VERSION</span><strong>{versions.find((version) => version.id === project?.active_version_id)?.version_number ? `v${versions.find((version) => version.id === project?.active_version_id)?.version_number}` : 'None'}</strong></div><button type="button" onClick={saveDraft}>Save new draft</button></section><p className="publish-message">{message || 'Save the current local configuration as an immutable draft version.'}</p><section className="version-list"><div className="panel-heading"><div><p className="eyebrow">Version history</p><h3>Configuration releases</h3></div></div>{versions.length === 0 ? <p className="empty-version">No versions saved yet.</p> : versions.map((version) => <article key={version.id}><div><strong>v{version.version_number}</strong><span>{new Date(version.created_at).toLocaleString()}</span></div><span className={`version-state ${version.state}`}>{version.state}</span>{version.state === 'draft' ? <button type="button" onClick={() => publishVersion(version)}>Publish version</button> : <span className="version-action">{version.state === 'published' ? 'Active Studio version' : 'Superseded'}</span>}</article>)}</section></div>
+function PublishWorkspace({ project, versions, message, saveDraft, publishVersion, runtimeCompatible }: { project: PersistedProject | null; versions: PersistedVersion[]; message: string; saveDraft: () => void; publishVersion: (version: PersistedVersion) => void; runtimeCompatible: boolean }) {
+  return <div className="workspace publish-workspace"><section className="editor-intro"><p className="eyebrow">06 / Publish lifecycle</p><h2>Make configuration changes traceable.</h2><p>Drafts persist in Supabase. Publishing changes the active Studio version, while runtime activation remains a separately controlled release boundary.</p></section><section className="publish-summary"><div><span>PROJECT</span><strong>{project?.name ?? 'Not persisted yet'}</strong></div><div><span>ACTIVE VERSION</span><strong>{versions.find((version) => version.id === project?.active_version_id)?.version_number ? `v${versions.find((version) => version.id === project?.active_version_id)?.version_number}` : 'None'}</strong></div><button type="button" onClick={saveDraft}>Save new draft</button></section><div className={runtimeCompatible ? 'compatibility ready' : 'compatibility blocked'}><strong>{runtimeCompatible ? 'Runtime compatible' : 'Studio-only draft'}</strong><span>{runtimeCompatible ? 'This GitHub configuration can activate after publish and deliberate Manufact redeploy.' : 'Imported operations can be drafted and previewed, but generic runtime generation is not available yet.'}</span></div><p className="publish-message">{message || 'Save the current local configuration as an immutable draft version.'}</p><section className="version-list"><div className="panel-heading"><div><p className="eyebrow">Version history</p><h3>Configuration releases</h3></div></div>{versions.length === 0 ? <p className="empty-version">No versions saved yet.</p> : versions.map((version) => <article key={version.id}><div><strong>v{version.version_number}</strong><span>{new Date(version.created_at).toLocaleString()}</span></div><span className={`version-state ${version.state}`}>{version.state}</span>{version.state === 'draft' ? <button type="button" onClick={() => publishVersion(version)}>Publish version</button> : <span className="version-action">{version.state === 'published' ? 'Active Studio version' : 'Superseded'}</span>}</article>)}</section></div>
 }
 
 function Placeholder({ section }: { section: Exclude<Section, 'Build' | 'Tools' | 'Views' | 'Flows' | 'Publish'> }) { const copy: Record<Exclude<Section, 'Build' | 'Tools' | 'Views' | 'Flows' | 'Publish'>, string> = { Test: 'Test runs will make input mappings, output data, and errors inspectable before publish.' }; return <div className="placeholder"><p className="eyebrow">Planned workspace</p><h2>{section} is next in the lifecycle.</h2><p>{copy[section]}</p><span>Phase 2.4 in progress</span></div> }

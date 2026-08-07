@@ -65,6 +65,7 @@ Verification results:
 - Studio lint and production build pass with the flow-builder slice.
 - Persisted the constrained flow in Studio configuration versions and validate its shape server-side.
 - Published Studio `v4`, deployed the flow-enabled runtime, and verified the public `get_repository_briefing` tool with its combined briefing view.
+- Added direct flow draft-save controls and runtime-compatibility status to the standalone Studio release workflow.
 - Screenshot rendering through the mcp-use CLI timed out waiting for readiness; the tool and bound view resource were verified, but visual screenshot verification remains outstanding.
 - Deployment status: running.
 - Live MCP URL: `https://keen-forge-ocsbv.run.mcp-use.com/mcp`.
@@ -73,6 +74,6 @@ Verification results:
 
 Next tasks:
 
-1. Add explicit Studio controls to save/publish flow changes and surface runtime compatibility before publish.
-2. Capture manual Inspector screenshots; the framework screenshot CLI still times out waiting for view readiness.
-3. Record the two-minute demo and application video.
+1. Capture manual Inspector screenshots; the framework screenshot CLI still times out waiting for view readiness.
+2. Record the two-minute demo and application video.
+3. Host the standalone Studio API and frontend before treating Phase 2 as a public self-serve product.

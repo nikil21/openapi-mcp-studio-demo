@@ -78,6 +78,8 @@ Local implementation note: Phase 2.4 now includes a Repository Briefing flow bui
 
 Runtime implementation note: Studio `v4` now publishes the constrained flow into `runtimeConfig`. The MCP runtime registers `get_repository_briefing`, executes configured read-only tool steps through the same safe executor, and returns a combined briefing view. Flow changes still require a Studio publish followed by deliberate runtime redeploy.
 
+Release workflow note: the Flow workspace can save its current contract as a draft, and the Publish workspace now labels GitHub-demo configurations as runtime-compatible before publication. This makes the explicit publish-and-redeploy boundary visible to the user.
+
 ### 2.5: Production Proof
 
 - Host the standalone Studio.
