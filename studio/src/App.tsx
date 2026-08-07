@@ -9,7 +9,7 @@ import './polish.css'
 type Section = 'Build' | 'Tools' | 'Views' | 'Flows' | 'Test' | 'Publish'
 type ToolDraft = { operationId: string; name: string; description: string; resultLimit: number; view: string }
 type ViewDraft = { template: string; titleField: string; detailField: string; metricField: string }
-type FlowDraft = { name: string; owner: string; repo: string; includeIssues: boolean; includeContributors: boolean; positions?: Record<string, { x: number; y: number }> }
+type FlowDraft = { name: string; owner: string; repo: string; includeIssues: boolean; includeContributors: boolean; positions?: Record<string, { x: number; y: number }>; edges?: Array<{ id: string; source: string; target: string }> }
 type PersistedProject = { id: string; name: string; api_source_url: string | null; active_version_id: string | null }
 type PersistedVersion = { id: string; version_number: number; state: 'draft' | 'published' | 'superseded'; created_at: string; published_at: string | null; config: unknown }
 
@@ -34,6 +34,11 @@ function createViewDraft(template: string): ViewDraft {
   return { template: 'Summary card', titleField: 'full_name', detailField: 'description', metricField: 'stars' }
 }
 
+function defaultFlowEdges(includeIssues: boolean, includeContributors: boolean) {
+  const nodes = ['input', 'overview', ...(includeIssues ? ['issues'] : []), ...(includeContributors ? ['contributors'] : []), 'condition', 'result']
+  return nodes.slice(1).map((target, index) => ({ id: `${nodes[index]}-${target}`, source: nodes[index], target }))
+}
+
 function buildConfig(apiTitle: string, sourceUrl: string, tools: ToolDraft[], views: Record<string, ViewDraft>, flow: FlowDraft) {
   const supportedGitHubOperations = new Set(['repos/get', 'issues/list-for-repo', 'repos/list-contributors'])
   const runtimeCompatible = tools.length > 0 && tools.every((tool) => supportedGitHubOperations.has(tool.operationId))
@@ -42,7 +47,7 @@ function buildConfig(apiTitle: string, sourceUrl: string, tools: ToolDraft[], vi
         app: { name: apiTitle, version: '0.2.0' },
         api: { baseUrl: 'https://api.github.com', allowedHosts: ['api.github.com'], defaultHeaders: { Accept: 'application/vnd.github+json' }, optionalBearerEnv: 'GITHUB_TOKEN' },
         tools: tools.map((tool) => ({ operationId: tool.operationId, name: tool.name, description: tool.description, inputLabels: {}, parameterMappings: tool.operationId === 'repos/get' ? {} : { limit: 'per_page' }, defaults: tool.operationId === 'issues/list-for-repo' ? { state: 'open' } : {}, resultLimit: tool.resultLimit, annotations: { readOnly: true, destructive: false, openWorld: true }, view: { type: tool.view === 'Summary card' ? 'summary-card' : tool.view === 'Ranked list' ? 'ranked-list' : 'data-table' } })),
-        flows: [{ name: 'get_repository_briefing', description: 'Build a concise public GitHub repository briefing from configured read-only tools.', kind: 'repository-briefing', includeIssues: flow.includeIssues, includeContributors: flow.includeContributors, view: { type: 'briefing' } }],
+        flows: [{ name: 'get_repository_briefing', description: 'Build a concise public GitHub repository briefing from configured read-only tools.', kind: 'repository-briefing', includeIssues: flow.includeIssues, includeContributors: flow.includeContributors, edges: flow.edges ?? defaultFlowEdges(flow.includeIssues, flow.includeContributors), view: { type: 'briefing' } }],
       }
     : undefined
   return { app: { name: apiTitle, version: '0.2.0' }, apiSourceUrl: sourceUrl, tools, views, flow, runtimeConfig, generatedAt: new Date().toISOString() }
@@ -79,7 +84,7 @@ function App() {
   const [selected, setSelected] = useState(initialOperations.filter((operation) => operation.supported).map((operation) => operation.id))
   const [tools, setTools] = useState(initialOperations.filter((operation) => operation.supported).map(createToolDraft))
   const [views, setViews] = useState<Record<string, ViewDraft>>(() => Object.fromEntries(initialOperations.filter((operation) => operation.supported).map((operation) => [operation.id, createViewDraft(createToolDraft(operation).view)])))
-  const [flow, setFlow] = useState<FlowDraft>({ name: 'Repository Briefing', owner: 'mcp-use', repo: 'mcp-use', includeIssues: true, includeContributors: true, positions: {} })
+  const [flow, setFlow] = useState<FlowDraft>({ name: 'Repository Briefing', owner: 'mcp-use', repo: 'mcp-use', includeIssues: true, includeContributors: true, positions: {}, edges: defaultFlowEdges(true, true) })
   const [project, setProject] = useState<PersistedProject | null>(null)
   const [versions, setVersions] = useState<PersistedVersion[]>([])
   const [persistenceMessage, setPersistenceMessage] = useState('')

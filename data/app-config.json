@@ -48,6 +48,13 @@
       "kind": "repository-briefing",
       "includeIssues": true,
       "includeContributors": true,
+      "edges": [
+        { "id": "input-overview", "source": "input", "target": "overview" },
+        { "id": "overview-issues", "source": "overview", "target": "issues" },
+        { "id": "issues-contributors", "source": "issues", "target": "contributors" },
+        { "id": "contributors-condition", "source": "contributors", "target": "condition" },
+        { "id": "condition-result", "source": "condition", "target": "result" }
+      ],
       "view": { "type": "briefing" }
     }
   ]

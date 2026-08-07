@@ -26,6 +26,7 @@ const flowConfigSchema = z.object({
   kind: z.literal("repository-briefing"),
   includeIssues: z.boolean(),
   includeContributors: z.boolean(),
+  edges: z.array(z.object({ id: z.string().min(1), source: z.string().min(1), target: z.string().min(1) })).max(6).optional(),
   view: z.object({ type: z.literal("briefing") }),
 });
 
@@ -61,6 +62,33 @@ export const appConfigSchema = z
         });
       }
       names.add(tool.name);
+    }
+
+    for (const [index, flow] of config.flows.entries()) {
+      if (flow.edges === undefined) continue;
+      const required = ["input", "overview", ...(flow.includeIssues ? ["issues"] : []), ...(flow.includeContributors ? ["contributors"] : []), "condition", "result"];
+      if (flow.edges.length !== required.length - 1) {
+        context.addIssue({ code: "custom", path: ["flows", index, "edges"], message: "Flow graph must connect every enabled step exactly once." });
+        continue;
+      }
+      const nextBySource = new Map<string, string>();
+      const incoming = new Set<string>();
+      for (const edge of flow.edges) {
+        if (!required.includes(edge.source) || !required.includes(edge.target) || edge.source === edge.target || nextBySource.has(edge.source) || incoming.has(edge.target)) {
+          context.addIssue({ code: "custom", path: ["flows", index, "edges"], message: "Flow graph must be a single linear path." });
+          break;
+        }
+        nextBySource.set(edge.source, edge.target);
+        incoming.add(edge.target);
+      }
+      const ordered = ["input"];
+      while (nextBySource.has(ordered.at(-1)!)) {
+        const next = nextBySource.get(ordered.at(-1)!)!;
+        if (ordered.includes(next)) break;
+        ordered.push(next);
+      }
+      const optional = new Set(required.slice(2, -2));
+      if (ordered.length !== required.length || ordered[1] !== "overview" || ordered.at(-2) !== "condition" || ordered.at(-1) !== "result" || ordered.slice(2, -2).some((node) => !optional.has(node))) context.addIssue({ code: "custom", path: ["flows", index, "edges"], message: "Flow graph must start with overview and end with condition then result." });
     }
   });
 

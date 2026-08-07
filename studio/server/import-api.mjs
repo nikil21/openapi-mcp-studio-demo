@@ -65,6 +65,29 @@ function assertDatabaseConfigured() {
   if (!supabaseUrl || !serviceRoleKey) throw new Error('Studio persistence is not configured.')
 }
 
+function validateFlowGraph(flow) {
+  if (!Array.isArray(flow.edges)) return [] // Versions published before Phase 3A use the safe default path.
+  const required = ['input', 'overview', ...(flow.includeIssues ? ['issues'] : []), ...(flow.includeContributors ? ['contributors'] : []), 'condition', 'result']
+  if (flow.edges.length !== required.length - 1) return ['Flow graph must connect every enabled step exactly once.']
+  const nextBySource = new Map()
+  const incoming = new Set()
+  for (const edge of flow.edges) {
+    if (edge === null || typeof edge !== 'object' || typeof edge.id !== 'string' || typeof edge.source !== 'string' || typeof edge.target !== 'string') return ['Flow graph contains an invalid edge.']
+    if (!required.includes(edge.source) || !required.includes(edge.target) || edge.source === edge.target || nextBySource.has(edge.source) || incoming.has(edge.target)) return ['Flow graph must be a single linear path.']
+    nextBySource.set(edge.source, edge.target)
+    incoming.add(edge.target)
+  }
+  const ordered = ['input']
+  while (nextBySource.has(ordered.at(-1))) {
+    const next = nextBySource.get(ordered.at(-1))
+    if (ordered.includes(next)) return ['Flow graph cannot contain a cycle.']
+    ordered.push(next)
+  }
+  const optional = new Set(required.slice(2, -2))
+  if (ordered.length !== required.length || ordered[1] !== 'overview' || ordered.at(-2) !== 'condition' || ordered.at(-1) !== 'result' || ordered.slice(2, -2).some((node) => !optional.has(node))) return ['Flow graph must start with overview and end with condition then result.']
+  return []
+}
+
 function validateStudioConfig(config) {
   if (config === null || typeof config !== 'object' || Array.isArray(config)) return ['Configuration must be an object.']
   const issues = []
@@ -76,6 +99,7 @@ function validateStudioConfig(config) {
   if (!Array.isArray(tools) || tools.length < 1 || tools.length > 3) issues.push('Configuration must contain one to three tools.')
   if (views === null || typeof views !== 'object' || Array.isArray(views)) issues.push('Configuration must include view bindings.')
   if (flow !== undefined && (flow === null || typeof flow !== 'object' || typeof flow.name !== 'string' || typeof flow.owner !== 'string' || typeof flow.repo !== 'string' || typeof flow.includeIssues !== 'boolean' || typeof flow.includeContributors !== 'boolean')) issues.push('Flow configuration is invalid.')
+  else if (flow !== undefined) issues.push(...validateFlowGraph(flow))
   return issues
 }
 

@@ -4,6 +4,7 @@ import { z } from "zod";
 import githubOpenApi from "./examples/github-openapi-subset.json" with { type: "json" };
 import { loadAppConfig } from "./src/config/load.js";
 import { appConfigSchema } from "./src/config/schema.js";
+import type { AppConfig } from "./src/config/schema.js";
 import { parseOpenApiDocument } from "./src/openapi/parse.js";
 import { executeGetRequest, SafeExecutionError } from "./src/runtime/execute-http.js";
 import { normalizeGitHubResult } from "./src/runtime/normalize-result.js";
@@ -171,7 +172,21 @@ const briefingOutputSchema = z.object({
   overview: z.unknown(),
   issues: z.unknown().optional(),
   contributors: z.unknown().optional(),
+  executionTrace: z.array(z.string()),
 });
+
+function briefingExecutionSteps(flow: AppConfig["flows"][number]) {
+  const nodes = ["input", "overview", ...(flow.includeIssues ? ["issues"] : []), ...(flow.includeContributors ? ["contributors"] : []), "condition", "result"];
+  const edges = flow.edges ?? nodes.slice(1).map((target, index) => ({ source: nodes[index], target }));
+  const nextBySource = new Map(edges.map((edge) => [edge.source, edge.target]));
+  const ordered: string[] = [];
+  let current = "input";
+  while (nextBySource.has(current)) {
+    current = nextBySource.get(current)!;
+    ordered.push(current);
+  }
+  return ordered;
+}
 
 for (const flow of appConfig.flows) {
   const overviewTool = appConfig.tools.find((tool) => tool.operationId === "repos/get");
@@ -183,6 +198,7 @@ for (const flow of appConfig.flows) {
   if (overviewTool === undefined || overviewOperation === undefined) throw new Error("Repository briefing requires the repository overview tool.");
   if (flow.includeIssues && (issuesTool === undefined || issuesOperation === undefined)) throw new Error("Repository briefing requires the issues tool.");
   if (flow.includeContributors && (contributorsTool === undefined || contributorsOperation === undefined)) throw new Error("Repository briefing requires the contributors tool.");
+  const executionSteps = briefingExecutionSteps(flow);
 
   server.tool(
     {
@@ -197,16 +213,19 @@ for (const flow of appConfig.flows) {
     async ({ owner, repo }) => {
       const requestId = crypto.randomUUID();
       try {
-        const overview = await executeConfiguredOperation(overviewOperation, overviewTool, { owner, repo }, requestId);
-        const issues = flow.includeIssues && issuesOperation !== undefined && issuesTool !== undefined
-          ? await executeConfiguredOperation(issuesOperation, issuesTool, { owner, repo }, requestId)
-          : undefined;
-        const contributors = flow.includeContributors && contributorsOperation !== undefined && contributorsTool !== undefined
-          ? await executeConfiguredOperation(contributorsOperation, contributorsTool, { owner, repo }, requestId)
-          : undefined;
+        let overview: unknown;
+        let issues: unknown;
+        let contributors: unknown;
+        const executionTrace: string[] = [];
+        for (const step of executionSteps) {
+          if (step === "overview") { overview = await executeConfiguredOperation(overviewOperation, overviewTool, { owner, repo }, requestId); executionTrace.push(step); }
+          if (step === "issues" && issuesOperation !== undefined && issuesTool !== undefined) { issues = await executeConfiguredOperation(issuesOperation, issuesTool, { owner, repo }, requestId); executionTrace.push(step); }
+          if (step === "contributors" && contributorsOperation !== undefined && contributorsTool !== undefined) { contributors = await executeConfiguredOperation(contributorsOperation, contributorsTool, { owner, repo }, requestId); executionTrace.push(step); }
+        }
+        executionTrace.push("condition", "result");
         return {
           content: [{ type: "text", text: `Repository briefing completed. Request ID: ${requestId}` }],
-          structuredContent: { requestId, overview, ...(issues === undefined ? {} : { issues }), ...(contributors === undefined ? {} : { contributors }) },
+          structuredContent: { requestId, overview, ...(issues === undefined ? {} : { issues }), ...(contributors === undefined ? {} : { contributors }), executionTrace },
         };
       } catch (error) {
         const safeError = error instanceof SafeExecutionError ? error : new SafeExecutionError("Flow execution failed.", requestId);
