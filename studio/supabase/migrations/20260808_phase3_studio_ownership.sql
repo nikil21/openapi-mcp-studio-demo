@@ -1,5 +1,5 @@
-alter table studio_projects add column owner_id uuid references auth.users(id) on delete cascade;
-create index studio_projects_owner_updated_idx on studio_projects(owner_id, updated_at desc);
+alter table studio_projects add column if not exists owner_id uuid references auth.users(id) on delete cascade;
+create index if not exists studio_projects_owner_updated_idx on studio_projects(owner_id, updated_at desc);
 
 create policy "Users manage their own Studio projects"
   on studio_projects for all

@@ -1,6 +1,7 @@
 import { startTransition, useEffect, useState } from 'react'
 import { classifyOpenApi, type Operation } from './lib/openapi'
 import { FlowWorkspace } from './FlowWorkspace'
+import { useStudioAuth } from './AuthGate'
 import './App.css'
 import './views.css'
 import './publish.css'
@@ -76,6 +77,7 @@ function createToolDraft(operation: Operation): ToolDraft {
 }
 
 function App() {
+  const { apiFetch } = useStudioAuth()
   const [section, setSection] = useState<Section>('Build')
   const [sourceUrl, setSourceUrl] = useState(defaultSource)
   const [apiTitle, setApiTitle] = useState('GitHub Repository API')
@@ -91,7 +93,7 @@ function App() {
   const [importState, setImportState] = useState<'idle' | 'loading' | 'error'>('idle')
   const [message, setMessage] = useState('')
   useEffect(() => {
-    void fetch('/api/projects').then(async (response) => {
+    void apiFetch('/api/projects').then(async (response) => {
       if (!response.ok) return
       const payload = await response.json() as { projects: Array<PersistedProject & { versions: PersistedVersion[] }> }
       const existing = payload.projects[0]
@@ -102,7 +104,7 @@ function App() {
         if (savedFlow) setFlow(savedFlow)
       }
     }).catch(() => undefined)
-  }, [])
+  }, [apiFetch])
   const selectSection = (next: Section) => startTransition(() => setSection(next))
   const importSource = async () => {
     setImportState('loading'); setMessage('')
@@ -129,7 +131,7 @@ function App() {
     setPersistenceMessage('Saving draft...')
     try {
       const config = buildConfig(apiTitle, sourceUrl, tools, views, flow)
-      const response = await fetch(project ? `/api/projects/${project.id}/versions` : '/api/projects', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(project ? { config } : { name: apiTitle, apiSourceUrl: sourceUrl, config }) })
+      const response = await apiFetch(project ? `/api/projects/${project.id}/versions` : '/api/projects', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(project ? { config } : { name: apiTitle, apiSourceUrl: sourceUrl, config }) })
       const payload = await response.json() as { project?: PersistedProject; version?: PersistedVersion; error?: string }
       if (!response.ok || !payload.version) throw new Error(payload.error ?? 'Could not save draft.')
       if (payload.project) setProject(payload.project)
@@ -140,7 +142,7 @@ function App() {
     if (!project) return
     setPersistenceMessage(`Publishing v${version.version_number}...`)
     try {
-      const response = await fetch(`/api/projects/${project.id}/publish`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ versionId: version.id }) })
+      const response = await apiFetch(`/api/projects/${project.id}/publish`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ versionId: version.id }) })
       const payload = await response.json() as { version?: PersistedVersion; error?: string }
       if (!response.ok || !payload.version) throw new Error(payload.error ?? 'Could not publish version.')
       setVersions(versions.map((item) => item.id === payload.version?.id ? payload.version : item.state === 'published' ? { ...item, state: 'superseded' } : item)); setProject({ ...project, active_version_id: payload.version.id }); setPersistenceMessage(`Published v${payload.version.version_number}. Runtime activation is the next controlled step.`)
