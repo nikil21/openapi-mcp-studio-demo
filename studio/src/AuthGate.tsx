@@ -31,7 +31,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
   }
   if (session !== null) {
     const apiFetch: typeof fetch = (input, init = {}) => fetch(input, { ...init, headers: { ...(init.headers ?? {}), Authorization: `Bearer ${session.access_token}` } })
-    return <AuthContext.Provider value={{ apiFetch }}><button className="studio-signout" type="button" onClick={() => { localStorage.removeItem(storageKey); setSession(null) }}>Sign out {session.user.email ?? ''}</button>{children}</AuthContext.Provider>
+    return <AuthContext.Provider value={{ apiFetch }}><div className="studio-account"><span>{session.user.email ?? 'Signed in'}</span><button type="button" onClick={() => { localStorage.removeItem(storageKey); setSession(null) }}>Sign out</button></div>{children}</AuthContext.Provider>
   }
   return <main className="studio-auth"><p className="eyebrow">OpenAPI-to-MCP Studio</p><h1>Sign in to your workspace</h1><p>Projects are private to your Studio account.</p><label>Email<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} /></label><label>Password<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} /></label><button type="button" disabled={loading || !email || password.length < 8} onClick={() => void authenticate('signin')}>{loading ? 'Signing in...' : 'Sign in'}</button><button className="secondary" type="button" disabled={loading || !email || password.length < 8} onClick={() => void authenticate('signup')}>Create account</button><p>{message}</p></main>
 }

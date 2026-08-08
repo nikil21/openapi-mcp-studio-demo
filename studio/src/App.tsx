@@ -88,6 +88,8 @@ function App() {
   const [views, setViews] = useState<Record<string, ViewDraft>>(() => Object.fromEntries(initialOperations.filter((operation) => operation.supported).map((operation) => [operation.id, createViewDraft(createToolDraft(operation).view)])))
   const [flow, setFlow] = useState<FlowDraft>({ name: 'Repository Briefing', owner: 'mcp-use', repo: 'mcp-use', includeIssues: true, includeContributors: true, positions: {}, edges: defaultFlowEdges(true, true) })
   const [project, setProject] = useState<PersistedProject | null>(null)
+  const [projects, setProjects] = useState<PersistedProject[]>([])
+  const [projectName, setProjectName] = useState('GitHub Repository API')
   const [versions, setVersions] = useState<PersistedVersion[]>([])
   const [persistenceMessage, setPersistenceMessage] = useState('')
   const [importState, setImportState] = useState<'idle' | 'loading' | 'error'>('idle')
@@ -96,9 +98,10 @@ function App() {
     void apiFetch('/api/projects').then(async (response) => {
       if (!response.ok) return
       const payload = await response.json() as { projects: Array<PersistedProject & { versions: PersistedVersion[] }> }
+      setProjects(payload.projects)
       const existing = payload.projects[0]
       if (existing) {
-        setProject(existing); setVersions(existing.versions)
+        setProject(existing); setProjectName(existing.name); setVersions(existing.versions)
         const active = existing.versions.find((version) => version.id === existing.active_version_id)
         const savedFlow = active?.config && typeof active.config === 'object' ? (active.config as { flow?: FlowDraft }).flow : undefined
         if (savedFlow) setFlow(savedFlow)
@@ -106,6 +109,29 @@ function App() {
     }).catch(() => undefined)
   }, [apiFetch])
   const selectSection = (next: Section) => startTransition(() => setSection(next))
+  const chooseProject = (id: string) => {
+    const next = projects.find((item) => item.id === id)
+    if (!next) return
+    setProject(next); setProjectName(next.name); setVersions((next as PersistedProject & { versions?: PersistedVersion[] }).versions ?? [])
+  }
+  const createProject = () => {
+    const name = window.prompt('Name your new Studio project')?.trim()
+    if (!name) return
+    setProject(null); setVersions([]); setProjectName(name); setPersistenceMessage('New project ready. Save its first draft to create it.')
+  }
+  const promptRenameProject = () => {
+    if (!project) return
+    const name = window.prompt('Rename Studio project', project.name)?.trim()
+    if (!name) return
+    setProjectName(name)
+    void renameProject(name)
+  }
+  const renameProject = async (name = projectName) => {
+    if (!project || name.trim() === '' || name === project.name) return
+    const response = await apiFetch(`/api/projects/${project.id}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name }) })
+    const payload = await response.json() as { project?: PersistedProject }
+    if (response.ok && payload.project) { setProject(payload.project); setProjects(projects.map((item) => item.id === payload.project?.id ? payload.project : item)) }
+  }
   const importSource = async () => {
     setImportState('loading'); setMessage('')
     try {
@@ -131,10 +157,11 @@ function App() {
     setPersistenceMessage('Saving draft...')
     try {
       const config = buildConfig(apiTitle, sourceUrl, tools, views, flow)
-      const response = await apiFetch(project ? `/api/projects/${project.id}/versions` : '/api/projects', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(project ? { config } : { name: apiTitle, apiSourceUrl: sourceUrl, config }) })
+      if (!project && projectName.trim() === '') throw new Error('Enter a project name before saving its first draft.')
+      const response = await apiFetch(project ? `/api/projects/${project.id}/versions` : '/api/projects', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(project ? { config } : { name: projectName, apiSourceUrl: sourceUrl, config }) })
       const payload = await response.json() as { project?: PersistedProject; version?: PersistedVersion; error?: string }
       if (!response.ok || !payload.version) throw new Error(payload.error ?? 'Could not save draft.')
-      if (payload.project) setProject(payload.project)
+      if (payload.project) { setProject(payload.project); setProjectName(payload.project.name); setProjects([payload.project, ...projects.filter((item) => item.id !== payload.project?.id)]) }
       setVersions([payload.version, ...versions]); setPersistenceMessage(`Draft v${payload.version.version_number} saved in Supabase.`)
     } catch (error) { setPersistenceMessage(error instanceof Error ? error.message : 'Could not save draft.') }
   }
@@ -149,7 +176,7 @@ function App() {
     } catch (error) { setPersistenceMessage(error instanceof Error ? error.message : 'Could not publish version.') }
   }
 
-  return <div className="app-shell"><aside className="sidebar"><a className="brand" href="#build" onClick={() => selectSection('Build')}><span className="brand-mark">M</span><span>mcp studio<small>PHASE 2</small></span></a><nav aria-label="Project sections"><p className="nav-label">Project</p>{sections.map((item, index) => <button className={section === item ? 'nav-item active' : 'nav-item'} key={item} onClick={() => selectSection(item)} type="button"><span>0{index + 1}</span>{item}</button>)}</nav><div className="sidebar-footer"><span className="status-dot" /> Local fixture mode<small>Import API available locally</small></div></aside><main><header className="topbar"><div><p className="eyebrow">Project / {apiTitle}</p><h1>{section}</h1></div><div className="topbar-actions"><span className="draft-pill">Draft v0.2</span><button type="button" onClick={() => selectSection('Publish')}>Publish</button></div></header>{section === 'Build' ? <BuildOverview sourceUrl={sourceUrl} setSourceUrl={setSourceUrl} importSource={importSource} importState={importState} message={message} apiTitle={apiTitle} apiVersion={apiVersion} operations={operations} selected={selected} toggleOperation={toggleOperation} /> : section === 'Tools' ? <ToolEditor tools={tools} operations={operations} updateTool={updateTool} /> : section === 'Views' ? <ViewEditor tools={tools} views={views} updateTool={updateTool} updateView={updateView} /> : section === 'Flows' ? <FlowWorkspace tools={tools} flow={flow} onFlowChange={setFlow} onSaveDraft={saveDraft} message={persistenceMessage} /> : section === 'Publish' ? <PublishWorkspace project={project} versions={versions} message={persistenceMessage} saveDraft={saveDraft} publishVersion={publishVersion} runtimeCompatible={compatible} /> : <Placeholder section={section} />}</main></div>
+  return <div className="app-shell"><aside className="sidebar"><a className="brand" href="#build" onClick={() => selectSection('Build')}><span className="brand-mark">M</span><span>mcp studio<small>PHASE 2</small></span></a><section className="sidebar-projects"><div><p className="nav-label">Projects</p><button aria-label="Create project" type="button" onClick={createProject}>+</button></div>{projects.length > 0 && <div className="sidebar-project-picker"><select aria-label="Studio project" value={project?.id ?? ''} onChange={(event) => chooseProject(event.target.value)}>{projects.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select><button aria-label="Rename project" type="button" disabled={!project} onClick={promptRenameProject}>Edit</button></div>}</section><nav aria-label="Project sections"><p className="nav-label">Project</p>{sections.map((item, index) => <button className={section === item ? 'nav-item active' : 'nav-item'} key={item} onClick={() => selectSection(item)} type="button"><span>0{index + 1}</span>{item}</button>)}</nav><div className="sidebar-footer"><span className="status-dot" /> Local fixture mode<small>Import API available locally</small></div></aside><main><header className="topbar"><div><p className="eyebrow">Project / {project?.name ?? (projectName || apiTitle)}</p><h1>{section}</h1><span className="draft-pill">Draft v0.2</span></div></header>{section === 'Build' ? <BuildOverview sourceUrl={sourceUrl} setSourceUrl={setSourceUrl} importSource={importSource} importState={importState} message={message} apiTitle={apiTitle} apiVersion={apiVersion} operations={operations} selected={selected} toggleOperation={toggleOperation} /> : section === 'Tools' ? <ToolEditor tools={tools} operations={operations} updateTool={updateTool} /> : section === 'Views' ? <ViewEditor tools={tools} views={views} updateTool={updateTool} updateView={updateView} /> : section === 'Flows' ? <FlowWorkspace tools={tools} flow={flow} onFlowChange={setFlow} onSaveDraft={saveDraft} message={persistenceMessage} /> : section === 'Publish' ? <PublishWorkspace project={project} versions={versions} message={persistenceMessage} saveDraft={saveDraft} publishVersion={publishVersion} runtimeCompatible={compatible} /> : <Placeholder section={section} />}</main></div>
 }
 
 function BuildOverview({ sourceUrl, setSourceUrl, importSource, importState, message, apiTitle, apiVersion, operations, selected, toggleOperation }: { sourceUrl: string; setSourceUrl: (value: string) => void; importSource: () => void; importState: 'idle' | 'loading' | 'error'; message: string; apiTitle: string; apiVersion: string; operations: Operation[]; selected: string[]; toggleOperation: (operation: Operation) => void }) {

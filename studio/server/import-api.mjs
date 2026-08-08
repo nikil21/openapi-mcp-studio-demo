@@ -187,6 +187,12 @@ createServer(async (request, response) => {
     const project = projectPath(request.url ?? '')
     const user = project === undefined ? undefined : await requireUser(request)
     if (project !== undefined && user !== undefined) await ownedProject(project.id, user.id)
+    if (project && request.method === 'PATCH' && project.action === undefined) {
+      const { name } = await readRequest(request)
+      if (typeof name !== 'string' || name.trim().length === 0 || name.trim().length > 120) throw new Error('Project name must contain between 1 and 120 characters.')
+      const [updated] = await supabase(`studio_projects?id=eq.${project.id}`, { method: 'PATCH', body: JSON.stringify({ name: name.trim(), updated_at: new Date().toISOString() }) })
+      return respond(response, 200, { project: updated })
+    }
     if (project && request.method === 'POST' && project.action === 'versions') {
       const { config } = await readRequest(request)
       if (!config || typeof config !== 'object') throw new Error('Configuration is required.')
