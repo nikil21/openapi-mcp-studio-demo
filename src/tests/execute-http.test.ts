@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { appConfigSchema } from "../config/schema.js";
-import { assertSafeUpstream, executeGetRequest, SafeExecutionError } from "../runtime/execute-http.js";
+import { assertSafeUpstream, executeGetRequest, executeJsonPostRequest, SafeExecutionError } from "../runtime/execute-http.js";
 
 const api = appConfigSchema.parse({
   app: { name: "Test", version: "0.1.0" },
@@ -33,5 +33,13 @@ describe("safe HTTP execution", () => {
   it("reports rate limiting without exposing response data", async () => {
     const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({ message: "rate limit" }), { status: 403, headers: { "x-ratelimit-remaining": "0" } }));
     await expect(executeGetRequest({ url: new URL("https://api.github.com/rate_limit"), api, toolName: "test", pathTemplate: "/rate_limit", requestId: "request-2", fetchImpl })).rejects.toMatchObject({ message: expect.stringContaining("rate limit"), requestId: "request-2" } satisfies Partial<SafeExecutionError>);
+  });
+
+  it("sends bounded primitive JSON with server-owned headers", async () => {
+    const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({ id: "demo_lead_1" }), { status: 201 }));
+    await expect(executeJsonPostRequest({ url: new URL("https://api.github.com/leads"), api, toolName: "capture_lead", pathTemplate: "/leads", requestId: "request-3", body: { name: "Demo", email: "demo@example.test" }, fetchImpl })).resolves.toEqual({ id: "demo_lead_1" });
+    expect(fetchImpl).toHaveBeenCalledWith(expect.any(URL), expect.objectContaining({ method: "POST", body: JSON.stringify({ name: "Demo", email: "demo@example.test" }), redirect: "manual" }));
+    const headers = new Headers(fetchImpl.mock.calls[0][1]?.headers);
+    expect(headers.get("content-type")).toBe("application/json");
   });
 });

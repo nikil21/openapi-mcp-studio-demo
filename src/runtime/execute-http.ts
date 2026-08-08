@@ -25,6 +25,8 @@ export type ExecuteGetOptions = {
   environment?: string | undefined;
 };
 
+export type ExecuteJsonPostOptions = ExecuteGetOptions & { body: Record<string, string | number | boolean> };
+
 function isLocalDevelopmentHost(hostname: string): boolean {
   return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1";
 }
@@ -105,6 +107,40 @@ export async function executeGetRequest(options: ExecuteGetOptions): Promise<unk
     } catch {
       throw new Error("Upstream response was not valid JSON.");
     }
+  } catch (error) {
+    const safeMessage = error instanceof Error && error.name === "TimeoutError" ? "Upstream request timed out." : error instanceof Error ? error.message : "Upstream request failed.";
+    throw new SafeExecutionError(safeMessage, options.requestId, status);
+  } finally {
+    console.log(JSON.stringify({ event: "upstream_request", requestId: options.requestId, tool: options.toolName, host: options.url.hostname, pathTemplate: options.pathTemplate, status: status ?? "error", durationMs: Date.now() - startedAt }));
+  }
+}
+
+export async function executeJsonPostRequest(options: ExecuteJsonPostOptions): Promise<unknown> {
+  const startedAt = Date.now();
+  const fetchImpl = options.fetchImpl ?? fetch;
+  const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+  const maxResponseBytes = options.maxResponseBytes ?? DEFAULT_MAX_RESPONSE_BYTES;
+  let status: number | undefined;
+
+  try {
+    assertSafeUpstream(options.url, options.api, options.environment);
+    if (Object.values(options.body).some((value) => !["string", "number", "boolean"].includes(typeof value))) throw new Error("POST body fields must be primitive values.");
+    const body = JSON.stringify(options.body);
+    if (Buffer.byteLength(body) > 16_384) throw new Error("POST body exceeded the size limit.");
+    const headers = new Headers(options.api.defaultHeaders);
+    headers.set("Accept", "application/json");
+    headers.set("Content-Type", "application/json");
+    headers.set("User-Agent", "openapi-mcp-studio-demo/0.1");
+    if (options.api.optionalBearerEnv !== undefined) {
+      const token = process.env[options.api.optionalBearerEnv];
+      if (token !== undefined && token.length > 0) headers.set("Authorization", `Bearer ${token}`);
+    }
+    const response = await fetchImpl(options.url, { method: "POST", headers, body, redirect: "manual", signal: AbortSignal.timeout(timeoutMs) });
+    status = response.status;
+    if (response.status >= 300 && response.status < 400) throw new Error("Upstream redirects are not permitted.");
+    const responseBody = await readBoundedBody(response, maxResponseBytes);
+    if (!response.ok) throw new Error(`Upstream request failed with status ${response.status}.`);
+    try { return JSON.parse(responseBody) as unknown; } catch { throw new Error("Upstream response was not valid JSON."); }
   } catch (error) {
     const safeMessage = error instanceof Error && error.name === "TimeoutError" ? "Upstream request timed out." : error instanceof Error ? error.message : "Upstream request failed.";
     throw new SafeExecutionError(safeMessage, options.requestId, status);

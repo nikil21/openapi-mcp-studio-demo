@@ -32,6 +32,7 @@ export type CatalogOperation = {
   }>;
   supported: boolean;
   reasons: string[];
+  requestBody?: { fields: Array<{ name: string; required: boolean; type: string }> };
 };
 
 export type OpenApiCatalog = {
@@ -75,10 +76,33 @@ function hasJsonResponse(operation: OpenApiOperation): boolean {
   });
 }
 
+function leadCaptureBodySupport(value: unknown): { reason?: string; fields?: Array<{ name: string; required: boolean; type: string }> } {
+  const requestBody = asRecord(value);
+  const content = asRecord(requestBody?.content);
+  const schema = asRecord(asRecord(content?.["application/json"])?.schema);
+  if (requestBody?.$ref !== undefined || content === undefined || Object.keys(content).length !== 1 || schema === undefined) return { reason: "Lead capture requires one inline application/json request body." };
+  if (schema.$ref !== undefined || schema.type !== "object" || schema.additionalProperties !== false || schema.oneOf !== undefined || schema.anyOf !== undefined || schema.allOf !== undefined) return { reason: "Lead capture requires a closed inline JSON object schema." };
+  const properties = asRecord(schema.properties);
+  const required = schema.required;
+  if (properties === undefined || (required !== undefined && (!Array.isArray(required) || required.some((field) => typeof field !== "string")))) return { reason: "Lead capture requires named inline fields." };
+  const requiredNames = new Set(required ?? []);
+  const fields: NonNullable<CatalogOperation["requestBody"]>["fields"] = [];
+  for (const [name, value] of Object.entries(properties)) {
+    const field = asRecord(value);
+    if (field === undefined || field.$ref !== undefined || typeof field.type !== "string" || !primitiveTypes.has(field.type) || field.oneOf !== undefined || field.anyOf !== undefined || field.allOf !== undefined) return { reason: "Lead capture fields must use inline primitive schemas." };
+    fields.push({ name, required: requiredNames.has(name), type: field.type });
+  }
+  if (fields.length === 0 || [...requiredNames].some((name) => !properties.hasOwnProperty(name))) return { reason: "Lead capture required fields must be declared." };
+  return { fields };
+}
+
 export function classifyOperation(method: string, operation: OpenApiOperation, pathParameters: unknown): CatalogOperation {
   const reasons: string[] = [];
-  if (method !== "get") reasons.push("Only GET operations are supported in this prototype.");
-  if (operation.requestBody !== undefined) reasons.push("Request bodies are not supported.");
+  const isLeadCapture = method === "post" && asRecord(operation)?.["x-mcp-studio-template"] === "lead-capture";
+  const bodySupport = isLeadCapture ? leadCaptureBodySupport(operation.requestBody) : undefined;
+  if (method !== "get" && !isLeadCapture) reasons.push("Only GET operations and marked lead capture POST operations are supported.");
+  if (operation.requestBody !== undefined && !isLeadCapture) reasons.push("Request bodies are not supported.");
+  if (bodySupport?.reason !== undefined) reasons.push(bodySupport.reason);
   if (!hasJsonResponse(operation)) reasons.push("A JSON response is required.");
 
   const parameters = [...(Array.isArray(pathParameters) ? pathParameters : []), ...(Array.isArray(operation.parameters) ? operation.parameters : [])];
@@ -120,6 +144,7 @@ export function classifyOperation(method: string, operation: OpenApiOperation, p
     parameters: parsedParameters,
     supported: reasons.length === 0,
     reasons: [...new Set(reasons)],
+    ...(bodySupport?.fields === undefined ? {} : { requestBody: { fields: bodySupport.fields } }),
   };
 }
 

@@ -1,5 +1,6 @@
 import githubOpenApi from "../../examples/github-openapi-subset.json" with { type: "json" };
 import unsupportedOpenApi from "../../examples/unsupported-openapi.json" with { type: "json" };
+import leadOpenApi from "../../examples/lead-api-openapi.json" with { type: "json" };
 import { describe, expect, it } from "vitest";
 
 import { parseOpenApiDocument } from "../openapi/parse.js";
@@ -15,11 +16,16 @@ describe("parseOpenApiDocument", () => {
     const catalog = parseOpenApiDocument(githubOpenApi);
     const hooks = catalog.operations.find((operation) => operation.operationId === "repos/create-hook");
     expect(hooks?.supported).toBe(false);
-    expect(hooks?.reasons).toContain("Only GET operations are supported in this prototype.");
+    expect(hooks?.reasons).toContain("Only GET operations and marked lead capture POST operations are supported.");
   });
 
   it("flags referenced parameters from the unsupported fixture", () => {
     const catalog = parseOpenApiDocument(unsupportedOpenApi);
     expect(catalog.operations[0]).toMatchObject({ supported: false, reasons: ["Referenced parameters are not supported."] });
+  });
+
+  it("only accepts the marked closed primitive lead capture POST schema", () => {
+    const lead = parseOpenApiDocument(leadOpenApi).operations.find((operation) => operation.operationId === "createDemoLead");
+    expect(lead).toMatchObject({ supported: true, requestBody: { fields: expect.arrayContaining([{ name: "name", required: true, type: "string" }, { name: "email", required: true, type: "string" }]) } });
   });
 });

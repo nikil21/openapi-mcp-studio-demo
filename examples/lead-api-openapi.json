@@ -11,6 +11,7 @@
       "post": {
         "operationId": "createDemoLead",
         "summary": "Create a demo lead",
+        "x-mcp-studio-template": "lead-capture",
         "requestBody": {
           "required": true,
           "content": {
