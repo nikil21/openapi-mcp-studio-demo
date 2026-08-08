@@ -192,7 +192,7 @@ server.tool(
       if (leadSandboxUrl === undefined) throw new Error("Demo lead sandbox is not configured.");
       const payload = validateLeadPayload(input);
       consumeLeadIntent(intentId, payload);
-      const url = new URL("/leads", leadSandboxUrl);
+      const url = new URL("leads", leadSandboxUrl.endsWith("/") ? leadSandboxUrl : `${leadSandboxUrl}/`);
       const api = { baseUrl: `${url.protocol}//${url.host}`, allowedHosts: [url.hostname], defaultHeaders: {} };
       const result = await executeJsonPostRequest({ url, api, toolName: "submit_lead_capture", pathTemplate: "/leads", requestId, body: payload, environment: process.env.NODE_ENV });
       const leadReference = result !== null && typeof result === "object" && "id" in result && typeof result.id === "string" ? result.id : undefined;

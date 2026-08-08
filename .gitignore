@@ -6,6 +6,7 @@ node_modules/
 dist/
 .mcp-use/
 .vite/
+studio/supabase/.temp/
 
 # TypeScript
 *.tsbuildinfo
