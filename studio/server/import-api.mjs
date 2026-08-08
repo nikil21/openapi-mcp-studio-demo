@@ -65,6 +65,19 @@ function assertDatabaseConfigured() {
   if (!supabaseUrl || !serviceRoleKey) throw new Error('Studio persistence is not configured.')
 }
 
+class HttpError extends Error { constructor(status, message) { super(message); this.status = status } }
+
+async function requireUser(request) {
+  const authorization = request.headers.authorization
+  if (typeof authorization !== 'string' || !authorization.startsWith('Bearer ')) throw new HttpError(401, 'Sign in to access Studio projects.')
+  assertDatabaseConfigured()
+  const response = await fetch(`${supabaseUrl}/auth/v1/user`, { headers: { apikey: serviceRoleKey, Authorization: authorization } })
+  if (!response.ok) throw new HttpError(401, 'Your Studio session has expired. Sign in again.')
+  const user = await response.json()
+  if (typeof user?.id !== 'string') throw new HttpError(401, 'Your Studio session is invalid.')
+  return user
+}
+
 function validateFlowGraph(flow) {
   if (!Array.isArray(flow.edges)) return [] // Versions published before Phase 3A use the safe default path.
   const required = ['input', 'overview', ...(flow.includeIssues ? ['issues'] : []), ...(flow.includeContributors ? ['contributors'] : []), 'condition', 'result']
@@ -113,6 +126,12 @@ async function supabase(path, options = {}) {
   return response.status === 204 ? null : response.json()
 }
 
+async function ownedProject(projectId, userId) {
+  const projects = await supabase(`studio_projects?id=eq.${projectId}&owner_id=eq.${userId}&select=*`)
+  if (projects[0] === undefined) throw new HttpError(404, 'Studio project was not found.')
+  return projects[0]
+}
+
 async function readRequest(request) {
   let body = ''
   request.setEncoding('utf8')
@@ -147,23 +166,27 @@ createServer(async (request, response) => {
     }
 
     if (request.method === 'GET' && request.url === '/api/projects') {
-      const projects = await supabase('studio_projects?select=*&order=updated_at.desc')
+      const user = await requireUser(request)
+      const projects = await supabase(`studio_projects?owner_id=eq.${user.id}&select=*&order=updated_at.desc`)
       const withVersions = await Promise.all(projects.map(async (project) => ({ ...project, versions: await supabase(`studio_config_versions?project_id=eq.${project.id}&select=*&order=version_number.desc`) })))
       return respond(response, 200, { projects: withVersions })
     }
 
     if (request.method === 'POST' && request.url === '/api/projects') {
+      const user = await requireUser(request)
       const { name, apiSourceUrl, config } = await readRequest(request)
       if (typeof name !== 'string' || name.trim().length === 0 || !config || typeof config !== 'object') throw new Error('Project name and configuration are required.')
       const validation = validateStudioConfig(config)
       if (validation.length > 0) throw new Error(`Configuration validation failed: ${validation.join(' ')}`)
-      const [project] = await supabase('studio_projects', { method: 'POST', body: JSON.stringify({ name: name.trim(), api_source_url: typeof apiSourceUrl === 'string' ? apiSourceUrl : null }) })
+      const [project] = await supabase('studio_projects', { method: 'POST', body: JSON.stringify({ name: name.trim(), api_source_url: typeof apiSourceUrl === 'string' ? apiSourceUrl : null, owner_id: user.id }) })
       const [version] = await supabase('studio_config_versions', { method: 'POST', body: JSON.stringify({ project_id: project.id, version_number: 1, state: 'draft', config, validation }) })
       await supabase('studio_audit_events', { method: 'POST', body: JSON.stringify({ project_id: project.id, version_id: version.id, event_type: 'draft_saved' }) })
       return respond(response, 201, { project, version })
     }
 
     const project = projectPath(request.url ?? '')
+    const user = project === undefined ? undefined : await requireUser(request)
+    if (project !== undefined && user !== undefined) await ownedProject(project.id, user.id)
     if (project && request.method === 'POST' && project.action === 'versions') {
       const { config } = await readRequest(request)
       if (!config || typeof config !== 'object') throw new Error('Configuration is required.')
@@ -191,6 +214,6 @@ createServer(async (request, response) => {
     return respond(response, 404, { error: 'Not found.' })
   } catch (error) {
     const message = error instanceof Error && error.name === 'TimeoutError' ? 'Specification request timed out.' : error instanceof Error ? error.message : 'Studio API request failed.'
-    return respond(response, 400, { error: message })
+    return respond(response, error instanceof HttpError ? error.status : 400, { error: message })
   }
 }).listen(8787, '127.0.0.1', () => console.log('Studio API listening on http://127.0.0.1:8787'))
