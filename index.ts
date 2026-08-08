@@ -7,6 +7,8 @@ import { appConfigSchema } from "./src/config/schema.js";
 import type { AppConfig } from "./src/config/schema.js";
 import { parseOpenApiDocument } from "./src/openapi/parse.js";
 import { executeGetRequest, SafeExecutionError } from "./src/runtime/execute-http.js";
+import { executeJsonPostRequest } from "./src/runtime/execute-http.js";
+import { consumeLeadIntent, createLeadIntent, validateLeadPayload } from "./src/runtime/lead-intents.js";
 import { normalizeGitHubResult } from "./src/runtime/normalize-result.js";
 import { buildRequestUrl, mapRequestParameters, resolveResultLimit, upstreamPageSize } from "./src/runtime/parameters.js";
 
@@ -174,6 +176,36 @@ const briefingOutputSchema = z.object({
   contributors: z.unknown().optional(),
   executionTrace: z.array(z.string()),
 });
+
+const leadSandboxUrl = process.env.LEAD_SANDBOX_URL;
+
+server.tool(
+  { name: "start_lead_capture", title: "Start demo lead capture", description: "Open a demo-only lead form. Do not use real customer data.", inputSchema: z.object({}), outputSchema: z.object({ intentId: z.string(), demoOnly: z.literal(true) }), view: { name: "lead-capture", prefersBorder: false }, annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false } },
+  async () => ({ content: [{ type: "text", text: "Complete the demo lead form, review it, then confirm submission." }], structuredContent: { intentId: createLeadIntent(), demoOnly: true as const } })
+);
+
+server.tool(
+  { name: "submit_lead_capture", title: "Submit confirmed demo lead", description: "Submit the reviewed demo lead form once.", inputSchema: z.object({ intentId: z.string().uuid(), name: z.string(), email: z.string(), company: z.string().optional() }), outputSchema: z.object({ leadReference: z.string(), demoOnly: z.literal(true) }), annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false } },
+  async ({ intentId, ...input }) => {
+    const requestId = crypto.randomUUID();
+    try {
+      if (leadSandboxUrl === undefined) throw new Error("Demo lead sandbox is not configured.");
+      const payload = validateLeadPayload(input);
+      consumeLeadIntent(intentId, payload);
+      const url = new URL("/leads", leadSandboxUrl);
+      const api = { baseUrl: `${url.protocol}//${url.host}`, allowedHosts: [url.hostname], defaultHeaders: {} };
+      const result = await executeJsonPostRequest({ url, api, toolName: "submit_lead_capture", pathTemplate: "/leads", requestId, body: payload, environment: process.env.NODE_ENV });
+      const leadReference = result !== null && typeof result === "object" && "id" in result && typeof result.id === "string" ? result.id : undefined;
+      if (leadReference === undefined) throw new Error("Demo lead sandbox returned an invalid response.");
+      console.log(JSON.stringify({ event: "lead_submission_succeeded", requestId, intentId, leadReference }));
+      return { content: [{ type: "text", text: `Demo lead submitted. Reference: ${leadReference}` }], structuredContent: { leadReference, demoOnly: true as const } };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Demo lead submission failed.";
+      console.log(JSON.stringify({ event: "lead_submission_failed", requestId, intentId }));
+      return { content: [{ type: "text", text: `${message} Request ID: ${requestId}` }], structuredContent: { leadReference: "", demoOnly: true as const }, isError: true };
+    }
+  }
+);
 
 function briefingExecutionSteps(flow: AppConfig["flows"][number]) {
   const nodes = ["input", "overview", ...(flow.includeIssues ? ["issues"] : []), ...(flow.includeContributors ? ["contributors"] : []), "condition", "result"];
