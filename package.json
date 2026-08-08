@@ -24,6 +24,7 @@
     "dev": "mcp-use dev",
     "start": "mcp-use start",
     "deploy": "mcp-use deploy",
+    "sandbox:leads": "node sandbox/lead-api.mjs",
     "typecheck": "mcp-use typecheck",
     "test": "vitest run"
   },

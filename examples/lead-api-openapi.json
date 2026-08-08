@@ -1,0 +1,53 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Demo Lead Sandbox API",
+    "version": "0.1.0",
+    "description": "Demo-only sandbox. Do not submit real customer data."
+  },
+  "servers": [{ "url": "http://127.0.0.1:8788" }],
+  "paths": {
+    "/leads": {
+      "post": {
+        "operationId": "createDemoLead",
+        "summary": "Create a demo lead",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["name", "email"],
+                "properties": {
+                  "name": { "type": "string", "minLength": 1, "maxLength": 120 },
+                  "email": { "type": "string", "format": "email", "maxLength": 254 },
+                  "company": { "type": "string", "maxLength": 120 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Demo lead created",
+            "content": { "application/json": { "schema": { "type": "object" } } }
+          }
+        }
+      }
+    },
+    "/leads/{leadId}": {
+      "get": {
+        "operationId": "getDemoLead",
+        "summary": "Get a demo lead",
+        "parameters": [{ "name": "leadId", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": {
+            "description": "Demo lead",
+            "content": { "application/json": { "schema": { "type": "object" } } }
+          }
+        }
+      }
+    }
+  }
+}
