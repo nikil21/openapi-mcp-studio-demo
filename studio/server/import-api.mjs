@@ -152,7 +152,7 @@ function projectPath(url) {
   return match ? { id: match[1], action: match[2] } : undefined
 }
 
-createServer(async (request, response) => {
+export async function studioApiHandler(request, response) {
   try {
     if (request.method === 'POST' && request.url === '/api/import') {
       const { url } = await readRequest(request)
@@ -222,4 +222,6 @@ createServer(async (request, response) => {
     const message = error instanceof Error && error.name === 'TimeoutError' ? 'Specification request timed out.' : error instanceof Error ? error.message : 'Studio API request failed.'
     return respond(response, error instanceof HttpError ? error.status : 400, { error: message })
   }
-}).listen(8787, '127.0.0.1', () => console.log('Studio API listening on http://127.0.0.1:8787'))
+}
+
+if (process.env.VERCEL !== '1') createServer(studioApiHandler).listen(8787, '127.0.0.1', () => console.log('Studio API listening on http://127.0.0.1:8787'))
