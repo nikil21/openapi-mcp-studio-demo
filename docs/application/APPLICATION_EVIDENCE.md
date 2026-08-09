@@ -57,3 +57,19 @@ Date verified: 2026-08-09
 Screenshot, CI run, log, or URL: `README.md`, `BUILD_REPORT.md`, and `docs/` documentation set.
 
 Limitations: Screenshot and video links remain intentionally marked pending until captured in later phases.
+
+## Phase 4 live GitHub Repository Briefing QA
+
+Claim: A clean-session user can configure, publish, activate, and invoke the GitHub Repository Briefing through a stable dedicated MCP URL.
+
+Command or user flow: Private-browser Studio sign-in -> final-test project -> GitHub OpenAPI import -> tool/view/flow review -> draft save -> publish v3 -> dedicated Manufact runtime restart -> Repository Briefing invocation.
+
+Observed result: Completed successfully with no reported failures or retries. Total elapsed time was approximately 5.3 minutes. Dedicated runtime deployment wait was approximately 2.3 minutes.
+
+Date verified: 2026-08-09
+
+Project and runtime: `final-test`; Manufact server `d61d5fc6-0bf8-418f-a80d-59af6c22345e`; stable MCP URL `https://bold-zero-mrmgz.run.mcp-use.com/mcp`.
+
+Screenshot, CI run, log, or URL: User-provided private QA captures show Build, Tools, Flows, and Publish/Runtime states. Public screenshot recapture is required because these captures include a personal email, deployment identifiers, and the former MCP Foundry branding.
+
+Limitations: Manual step count was not recorded. The Vercel deployment URL remains non-stable. The dedicated runtime restart remains a deliberate manual activation step.

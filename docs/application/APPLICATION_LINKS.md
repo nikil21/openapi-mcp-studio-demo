@@ -14,3 +14,4 @@
 - Manufact dashboard or deployment evidence: Private.
 - LinkedIn profile: To be added by the owner.
 - CI workflow: `https://github.com/nikil21/openapi-mcp-studio-demo/actions`
+- Phase 4 QA checklist: `docs/application/LIVE_QA_CHECKLIST.md`
