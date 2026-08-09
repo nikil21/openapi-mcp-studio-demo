@@ -21,6 +21,6 @@ jobs:
       - run: npm run test
       - run: npm run typecheck
       - run: npm run build
-      - run: node .agents/skills/mcp-apps-builder/scripts/check-v2.mjs .
+      - run: node scripts/check-v2.mjs .
       - run: npm --prefix studio run lint
       - run: npm --prefix studio run build
