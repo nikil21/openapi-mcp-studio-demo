@@ -2,15 +2,15 @@
 
 Target duration: 105 seconds. Record with the Studio and Manufact Chat preloaded in a clean browser profile.
 
-## 0:00-0:15 - Problem
+## 0:00-0:18 - Problem
 
 Show: `01-studio-overview.png` framing, then the live Studio overview.
 
 Say:
 
-> Manufact makes MCP applications fast to build and operate. I explored the lifecycle after scaffolding: how a product team can curate an existing API, configure safe tool behavior and views, and publish changes without rebuilding the app by hand.
+> Manufact makes MCP applications fast to build and operate. This short project explores what happens after scaffolding: giving a product team with an existing API a constrained way to choose safe operations, define how results should render, and publish versioned changes without rebuilding the app by hand. I used a curated GitHub API as the concrete example, not a generic API-to-MCP generator.
 
-## 0:15-0:38 - Import and Select
+## 0:18-0:40 - Import and Select
 
 Show: Build in the live Studio, then `02-openapi-operation-selection.png` if a stable visual is needed.
 
@@ -18,7 +18,7 @@ Say:
 
 > The Studio imports a deliberately constrained GitHub API description through a bounded server-side path. It classifies operations it supports and lets the owner choose the repository overview, issues, and contributors capabilities that should become MCP tools.
 
-## 0:38-0:58 - Configure
+## 0:40-1:00 - Configure
 
 Show: Tools, adjusting a result limit and showing the Summary Card, Data Table, and Ranked List bindings.
 
@@ -26,7 +26,7 @@ Say:
 
 > Rather than expose raw endpoints, the owner refines tool names and descriptions, applies result limits, and selects the view each result uses in an MCP-capable client.
 
-## 0:58-1:15 - Publish
+## 1:00-1:17 - Publish
 
 Show: Publish lifecycle and version history.
 
@@ -34,7 +34,7 @@ Say:
 
 > Publishing creates an immutable version. The client-facing MCP URL stays stable while configuration changes remain traceable. Activation is deliberately a separate deployment step in this prototype, rather than embedding personal deployment credentials in the Studio.
 
-## 1:15-1:42 - Run
+## 1:17-1:45 - Run
 
 Show: Manufact Chat executing the prompt and rendering the Repository Briefing.
 
@@ -46,7 +46,7 @@ Say:
 
 > The dedicated Manufact runtime executes the combined Repository Briefing tool and returns a structured summary with interactive issue and contributor views.
 
-## 1:42-1:55 - Close
+## 1:45-1:58 - Close
 
 Show: Safe deployment-history capture briefly, then the rendered briefing.
 
