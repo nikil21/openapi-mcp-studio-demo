@@ -51,7 +51,6 @@ flowchart TB
 
 ## Live Proof
 
-- Shared MCP demo: `https://keen-forge-ocsbv.run.mcp-use.com/mcp`
 - Dedicated project MCP: `https://bold-zero-mrmgz.run.mcp-use.com/mcp`
 - Hosted Foundry: deployed on Vercel; the current deployment URL is managed in Vercel.
 
@@ -133,10 +132,6 @@ NODE_ENV=development LEAD_SANDBOX_URL=http://127.0.0.1:8788 npm run dev
 
 - [`docs/product-brief.md`](docs/product-brief.md): product boundary and supported path.
 - [`docs/architecture.md`](docs/architecture.md): hosted architecture and release boundary.
-- [`docs/demo-script.md`](docs/demo-script.md): two-minute demo walkthrough.
-- [`docs/phase-2.md`](docs/phase-2.md) and [`docs/phase-3.md`](docs/phase-3.md): original plans and deferred scope.
-- [`docs/threat-model.md`](docs/threat-model.md): current controls and known limitations.
-- [`BUILD_REPORT.md`](BUILD_REPORT.md): build outcome and verification summary.
 
 ## Product Demo
 
