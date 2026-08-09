@@ -29,3 +29,17 @@ Date verified: 2026-08-09
 Screenshot, CI run, log, or URL: Repository documentation and Studio production build.
 
 Limitations: The lead-capture runtime tools remain available as technical reference code; they are not part of the intended application demo.
+
+## Phase 2 quality and hygiene check
+
+Claim: The public repository has reproducible credential-free quality checks and documented threat boundaries.
+
+Command or user flow: Root tests, typecheck, build, mcp-use v2 check; Studio lint/build; production dependency audit; tracked-file and Git-history token-marker scans.
+
+Observed result: 17 tests passed, builds passed, production audit reported 0 vulnerabilities, and no tracked environment or local deployment metadata files were found. The only current token-like source match is the documented `server-only-secret` placeholder.
+
+Date verified: 2026-08-09
+
+Screenshot, CI run, log, or URL: `.github/workflows/quality.yml`, `docs/threat-model.md`, and terminal baseline output.
+
+Limitations: The lint warning in `studio/src/AuthGate.tsx` is non-blocking. CI does not run authenticated Supabase or Manufact integration tests.

@@ -1,14 +1,14 @@
 # Application Status
 
 Last updated: 2026-08-09 19:41 IST
-Current phase: 1 complete - awaiting approval
+Current phase: 2 complete - awaiting approval
 Overall status: In progress
 
 ## Phase Checklist
 
 - [x] Phase 0 - Baseline and inventory
 - [x] Phase 1 - Freeze, simplify, and rename
-- [ ] Phase 2 - Security, secrets, tests, and CI
+- [x] Phase 2 - Security, secrets, tests, and CI
 - [ ] Phase 3 - README and supporting documentation
 - [ ] Phase 4 - Live product QA and demo reliability
 - [ ] Phase 5 - Screenshots and evidence capture
@@ -24,8 +24,8 @@ Overall status: In progress
 
 ## Current Blockers
 
-- None recorded.
+- No blocker. Known non-blocking lint warning: `AuthGate.tsx` exports a hook and component.
 
 ## Next User Action
 
-- Review the Phase 1 checkpoint and reply `CONTINUE` to authorize Phase 2.
+- Review the Phase 2 checkpoint and reply `CONTINUE` to authorize Phase 3.

@@ -23,3 +23,15 @@ Alternatives considered: Continue public use of MCP Foundry.
 Risk or tradeoff: Internal names remain unchanged to avoid deployment, database, and environment-variable risk.
 
 Revisit when: A product role, paid trial, or external product decision requires a lasting brand.
+
+## 2026-08-09 - Add credential-free quality CI
+
+Decision: Add a GitHub Actions workflow that installs dependencies and runs root and Studio tests, typechecks, builds, lint, and the mcp-use v2 compatibility check without production credentials.
+
+Reason: The application package needs reproducible public quality evidence without exposing secrets or coupling normal CI to external services.
+
+Alternatives considered: Depend on Vercel deployment status only or add a larger security platform.
+
+Risk or tradeoff: CI does not exercise authenticated Supabase, Manufact, or browser flows; those remain documented live QA steps.
+
+Revisit when: A future project adds integration-test credentials or protected deployment checks.

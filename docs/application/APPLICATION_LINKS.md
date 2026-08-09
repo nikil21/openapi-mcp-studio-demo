@@ -12,3 +12,4 @@
 - Dedicated Manufact MCP endpoint: `https://bold-zero-mrmgz.run.mcp-use.com/mcp`
 - Manufact dashboard or deployment evidence: Private.
 - LinkedIn profile: To be added by the owner.
+- CI workflow: `https://github.com/nikil21/openapi-mcp-studio-demo/actions`
