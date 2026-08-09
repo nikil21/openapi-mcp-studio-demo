@@ -1,8 +1,8 @@
 # Product Brief
 
-## MCP Foundry
+## Configurable MCP App Builder
 
-MCP Foundry is a configuration and lifecycle layer for product engineers, solutions engineers, and technical product managers who want to turn a safe API subset into an MCP App without hand-writing every tool and view.
+Configurable MCP App Builder is a configuration and lifecycle layer for product engineers, solutions engineers, and technical product managers who want to turn a safe API subset into an MCP App without hand-writing every tool and view.
 
 ## Product Boundary
 

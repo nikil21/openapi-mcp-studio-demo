@@ -670,6 +670,7 @@ function App() {
         <div className="sidebar-footer">
           <span className="status-dot" /> Local fixture mode
           <small>Import API available locally</small>
+          <small>Personal clean-room exploration. Not affiliated with Manufact.</small>
         </div>
       </aside>
       <main>

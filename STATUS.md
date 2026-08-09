@@ -2,12 +2,12 @@
 
 ## Current Release
 
-MCP Foundry is a hosted clean-room product proof built on mcp-use v2, Manufact Cloud, Supabase, and Vercel.
+Configurable MCP App Builder is a hosted clean-room product proof built on mcp-use v2, Manufact Cloud, Supabase, and Vercel.
 
 ## Verified
 
 - Public shared MCP demo: `https://keen-forge-ocsbv.run.mcp-use.com/mcp`.
-- Hosted MCP Foundry frontend and API on Vercel.
+- Hosted Configurable MCP App Builder frontend and API on Vercel.
 - Supabase email confirmation, sign-in, owner-scoped projects, RLS policies, immutable versions, publish lifecycle, and refresh persistence.
 - Safe GitHub OpenAPI import, bounded tool curation, reusable views, and constrained Repository Briefing flow.
 - Published flow order changes verified after deliberate redeploy.

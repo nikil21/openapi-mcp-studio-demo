@@ -1,6 +1,10 @@
-# MCP Foundry
+# Configurable MCP App Builder
 
-MCP Foundry is a clean-room product proof for turning a curated OpenAPI subset into safe MCP tools, reusable MCP App views, versioned configurations, and stable project runtimes. It uses mcp-use v2 and Manufact Cloud rather than rebuilding MCP infrastructure.
+A personal product exploration that turns a curated API into a versioned MCP App while Manufact provides the runtime and operating infrastructure.
+
+> Personal clean-room product exploration built using public APIs, public documentation, and personal accounts. Not affiliated with or endorsed by Manufact. No proprietary employer source material is included.
+
+> This proof supports a curated GitHub API subset and constrained templates. It does not claim arbitrary OpenAPI compatibility, general OAuth mapping, generic write-action generation, billing, or app-store automation.
 
 ## Live Proof
 
@@ -38,17 +42,9 @@ Foundry provides:
 
 Each project has one stable MCP URL. Draft and published versions do not create new servers. The project owner manually redeploys that linked server to activate a published version.
 
-## Lead Capture Reference
+## Optional Technical Reference
 
-The repository also includes a deliberately constrained demo-only lead capture pattern:
-
-- A marked closed JSON POST schema.
-- Primitive fields only; no generic write body editor.
-- Form review before submission.
-- Short-lived single-use demo intent.
-- Supabase Edge Function sandbox returning `demo_lead_*` references.
-
-This is a reference safety pattern, not a general POST generator or CRM integration. Do not submit real customer data.
+`examples/lead-api-openapi.json` and the related runtime code demonstrate a fixed demo-only confirmation-gated write safety pattern. It is not part of the primary GitHub Repository Briefing narrative, not a general POST generator, and not a CRM integration. Do not submit real customer data.
 
 ## Local Development
 

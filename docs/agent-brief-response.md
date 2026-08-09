@@ -17,7 +17,7 @@ This document responds to the original clean-room build brief at `openapi_mcp_st
 
 ## Delivered Product Layer
 
-The resulting product is named **MCP Foundry**. It goes beyond the brief's local-save requirement while preserving its safety boundaries:
+The application-facing title is **Configurable MCP App Builder**. It goes beyond the brief's local-save requirement while preserving its safety boundaries:
 
 - Hosted Vercel frontend and serverless Studio API.
 - Supabase email/password authentication, owner-scoped projects, and RLS policies.
@@ -51,4 +51,4 @@ The remaining work is portfolio packaging, not core platform development:
 3. Write the one-page product experiment memo.
 4. Prepare the tailored resume, short introduction video, and founder outreach.
 
-This outcome demonstrates the intended thesis: Manufact supplies MCP development and operating infrastructure; MCP Foundry demonstrates a configurable, safe lifecycle layer above it.
+This outcome demonstrates the intended thesis: Manufact supplies MCP development and operating infrastructure; the builder demonstrates a configurable, safe lifecycle layer above it.

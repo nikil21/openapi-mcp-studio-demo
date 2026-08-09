@@ -3,7 +3,7 @@
 ## Product Layers
 
 ```text
-Vercel-hosted MCP Foundry
+Vercel-hosted Configurable MCP App Builder
   -> authenticated Studio API
   -> Supabase projects, versions, and audit data
   -> published project configuration
