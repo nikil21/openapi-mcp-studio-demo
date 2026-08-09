@@ -148,7 +148,7 @@ function respond(response, status, body) {
 }
 
 function projectPath(url) {
-  const match = url.match(/^\/api\/projects\/([0-9a-f-]+)(?:\/(versions|publish|audit))?$/i)
+  const match = url.match(/^\/api\/projects\/([0-9a-f-]+)(?:\/(versions|publish|audit|runtime))?$/i)
   return match ? { id: match[1], action: match[2] } : undefined
 }
 
@@ -196,6 +196,14 @@ export async function studioApiHandler(request, response) {
       const { name } = await readRequest(request)
       if (typeof name !== 'string' || name.trim().length === 0 || name.trim().length > 120) throw new Error('Project name must contain between 1 and 120 characters.')
       const [updated] = await supabase(`studio_projects?id=eq.${project.id}`, { method: 'PATCH', body: JSON.stringify({ name: name.trim(), updated_at: new Date().toISOString() }) })
+      return respond(response, 200, { project: updated })
+    }
+    if (project && request.method === 'PATCH' && project.action === 'runtime') {
+      const { serverId, runtimeUrl } = await readRequest(request)
+      if (typeof serverId !== 'string' || !/^[0-9a-f-]{36}$/i.test(serverId) || typeof runtimeUrl !== 'string') throw new Error('A Manufact server ID and MCP URL are required.')
+      const url = new URL(runtimeUrl)
+      if (url.protocol !== 'https:' || !url.hostname.endsWith('.run.mcp-use.com') || url.pathname !== '/mcp') throw new Error('Runtime URL must be a Manufact HTTPS MCP endpoint.')
+      const [updated] = await supabase(`studio_projects?id=eq.${project.id}`, { method: 'PATCH', body: JSON.stringify({ runtime_server_id: serverId, runtime_url: url.toString().replace(/\/$/, '') }) })
       return respond(response, 200, { project: updated })
     }
     if (project && request.method === 'DELETE' && project.action === undefined) {

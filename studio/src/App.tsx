@@ -35,6 +35,8 @@ type PersistedProject = {
   name: string;
   api_source_url: string | null;
   active_version_id: string | null;
+  runtime_server_id?: string | null;
+  runtime_url?: string | null;
 };
 type PersistedVersion = {
   id: string;
