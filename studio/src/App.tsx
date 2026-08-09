@@ -331,6 +331,8 @@ function App() {
   const [project, setProject] = useState<PersistedProject | null>(null);
   const [projects, setProjects] = useState<PersistedProject[]>([]);
   const [projectName, setProjectName] = useState("GitHub Repository API");
+  const [projectDialog, setProjectDialog] = useState<"create" | "rename" | "delete" | null>(null);
+  const [dialogName, setDialogName] = useState("");
   const [versions, setVersions] = useState<PersistedVersion[]>([]);
   const [persistenceMessage, setPersistenceMessage] = useState("");
   const [importState, setImportState] = useState<"idle" | "loading" | "error">(
@@ -374,8 +376,8 @@ function App() {
         [],
     );
   };
-  const createProject = async () => {
-    const name = window.prompt("Name your new Studio project")?.trim();
+  const createProject = async (name: string) => {
+    name = name.trim();
     if (!name) return;
     setPersistenceMessage("Creating project...");
     try {
@@ -403,12 +405,9 @@ function App() {
       );
     }
   };
-  const promptRenameProject = () => {
+  const openRenameProject = () => {
     if (!project) return;
-    const name = window.prompt("Rename Studio project", project.name)?.trim();
-    if (!name) return;
-    setProjectName(name);
-    void renameProject(name);
+    setDialogName(project.name); setProjectDialog("rename");
   };
   const renameProject = async (name = projectName) => {
     if (!project || name.trim() === "" || name === project.name) return;
@@ -428,7 +427,7 @@ function App() {
     }
   };
   const deleteProject = async () => {
-    if (!project || !window.confirm(`Delete ${project.name}? This removes all of its drafts.`)) return;
+    if (!project) return;
     try {
       const response = await apiFetch(`/api/projects/${project.id}`, { method: "DELETE" });
       const payload = response.status === 204 ? {} : ((await response.json()) as { error?: string });
@@ -623,7 +622,7 @@ function App() {
             <button
               aria-label="Create project"
               type="button"
-              onClick={createProject}
+               onClick={() => { setDialogName(""); setProjectDialog("create"); }}
             >
               +
             </button>
@@ -641,8 +640,8 @@ function App() {
                   </option>
                 ))}
               </select>
-              <button className="project-icon" title="Rename project" aria-label="Rename project" type="button" disabled={!project} onClick={promptRenameProject}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16.5V20h3.5L18 9.5 14.5 6 4 16.5Zm12.7-12.7 1.6-1.6a1.4 1.4 0 0 1 2 2l-1.6 1.6-2-2Z" /></svg></button>
-              <button className="project-icon delete" title="Delete project" aria-label="Delete project" type="button" disabled={!project} onClick={() => void deleteProject()}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h8l1 2h3v2H4V6h3l1-2Zm0 6h8v10H8V10Zm2 2v6h2v-6h-2Zm4 0v6h2v-6h-2Z" /></svg></button>
+              <button className="project-icon" title="Rename project" aria-label="Rename project" type="button" disabled={!project} onClick={openRenameProject}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16.5V20h3.5L18 9.5 14.5 6 4 16.5Zm12.7-12.7 1.6-1.6a1.4 1.4 0 0 1 2 2l-1.6 1.6-2-2Z" /></svg></button>
+              <button className="project-icon delete" title="Delete project" aria-label="Delete project" type="button" disabled={!project} onClick={() => setProjectDialog("delete")}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h8l1 2h3v2H4V6h3l1-2Zm0 6h8v10H8V10Zm2 2v6h2v-6h-2Zm4 0v6h2v-6h-2Z" /></svg></button>
             </div>
           )}
         </section>
@@ -722,6 +721,7 @@ function App() {
           <Placeholder section={section} />
         )}
       </main>
+      {projectDialog && <div className="project-dialog-backdrop" role="presentation"><section className="project-dialog" role="dialog" aria-modal="true"><p className="eyebrow">{projectDialog === "create" ? "New project" : projectDialog === "rename" ? "Rename project" : "Delete project"}</p>{projectDialog === "delete" ? <><h2>Delete {project?.name}?</h2><p>This removes all drafts. Published runtime projects remain protected.</p><div><button type="button" onClick={() => void deleteProject().then(() => setProjectDialog(null))}>Delete project</button><button className="secondary" type="button" onClick={() => setProjectDialog(null)}>Cancel</button></div></> : <><h2>{projectDialog === "create" ? "Name your workspace" : "Choose a new name"}</h2><input autoFocus value={dialogName} onChange={(event) => setDialogName(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") { if (projectDialog === "create") void createProject(dialogName); else void renameProject(dialogName); setProjectDialog(null) } }} /><div><button type="button" onClick={() => { if (projectDialog === "create") void createProject(dialogName); else void renameProject(dialogName); setProjectDialog(null) }}>{projectDialog === "create" ? "Create project" : "Save name"}</button><button className="secondary" type="button" onClick={() => setProjectDialog(null)}>Cancel</button></div></>}</section></div>}
     </div>
   );
 }
