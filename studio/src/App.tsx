@@ -1283,6 +1283,7 @@ function PublishWorkspace({
         <p className="eyebrow">Project runtime</p>
         <h3>{project?.runtime_url ? "Stable MCP server linked" : "Link a dedicated MCP server"}</h3>
         <p>{project?.runtime_url ? `This project keeps ${project.runtime_url} across draft and published versions.` : "Provision one Manufact server for this project, then link its server ID and MCP URL here."}</p>
+        <p className="runtime-project-id">Project deployment ID: <code>{project?.id ?? "Save the project first"}</code></p>
         <label>Manufact server ID<input value={serverId} onChange={(event) => setServerId(event.target.value)} placeholder="00000000-0000-0000-0000-000000000000" /></label>
         <label>Stable MCP URL<input value={runtimeUrl} onChange={(event) => setRuntimeUrl(event.target.value)} placeholder="https://your-server.run.mcp-use.com/mcp" /></label>
         <button type="button" disabled={!project || !serverId || !runtimeUrl} onClick={() => void connectRuntime(serverId, runtimeUrl).then(() => setRuntimeMessage("Runtime linked to this project.")).catch((error) => setRuntimeMessage(error instanceof Error ? error.message : "Could not link runtime."))}>{project?.runtime_url ? "Update runtime link" : "Link runtime"}</button>
