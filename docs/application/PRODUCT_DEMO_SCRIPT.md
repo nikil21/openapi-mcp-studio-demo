@@ -8,7 +8,7 @@ Show: `01-studio-overview.png` framing, then the live Studio overview.
 
 Say:
 
-> Manufact makes MCP applications fast to build and operate. This short project explores what happens after scaffolding: giving a product team with an existing API a constrained way to choose safe operations, define how results should render, and publish versioned changes without rebuilding the app by hand. I used a curated GitHub API as the concrete example, not a generic API-to-MCP generator.
+> Manufact makes MCP apps fast to build and operate. This short project explores what happens after scaffolding: a constrained way for a team to turn a curated existing API into safe, versioned tools and views without rebuilding the app.
 
 ## 0:18-0:40 - Import and Select
 
