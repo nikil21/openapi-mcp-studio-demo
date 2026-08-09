@@ -87,3 +87,17 @@ Date verified: 2026-08-09
 Screenshot, CI run, log, or URL: `docs/assets/screenshots/README.md`.
 
 Limitations: Screenshots document one successful state at a time. They do not replace the live QA checklist or a recorded demo.
+
+## Phase 6 product demo video
+
+Claim: A founder can watch a concise end-to-end demonstration of the Configurable MCP App Builder without signing in.
+
+Command or user flow: Open the Drive viewer link without an authenticated Google session.
+
+Observed result: Google Drive returned the public viewer for `mcp-app-builder-demo.mov` without authentication.
+
+Date verified: 2026-08-09
+
+Screenshot, CI run, log, or URL: `https://drive.google.com/file/d/1jRvy0yR9_62vx6_vMXqhlR_VB--8MpKz/view?usp=sharing`
+
+Limitations: Hosting is Google Drive rather than a dedicated video platform. The video is a recorded demonstration and does not replace live product verification.

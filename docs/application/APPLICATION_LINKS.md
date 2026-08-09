@@ -2,7 +2,7 @@
 
 - Live Studio: `https://openapi-mcp-studio-demo-82ptvk1y0-nikil22.vercel.app` (verified deployment URL; stable alias pending).
 - Seeded demo or guest view: N/A.
-- Product demo video: Pending Phase 6.
+- Product demo video: `https://drive.google.com/file/d/1jRvy0yR9_62vx6_vMXqhlR_VB--8MpKz/view?usp=sharing` (public Drive viewer verified 2026-08-09).
 - Personal introduction video: Pending Phase 9.
 - GitHub repository: `https://github.com/nikil21/openapi-mcp-studio-demo`
 - Build report: `BUILD_REPORT.md`

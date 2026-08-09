@@ -6,7 +6,7 @@ A personal product exploration that turns a curated API into a versioned MCP App
 
 > This proof supports a curated GitHub API subset and constrained templates. It does not claim arbitrary OpenAPI compatibility, general OAuth mapping, generic write-action generation, billing, or app-store automation.
 
-[Live Studio](https://openapi-mcp-studio-demo-82ptvk1y0-nikil22.vercel.app) | [Two-minute Demo](#demo-video-pending) | [Live MCP Chat](https://keen-forge-ocsbv.run.mcp-use.com/chat) | [Architecture](docs/architecture.md)
+[Live Studio](https://openapi-mcp-studio-demo-82ptvk1y0-nikil22.vercel.app) | [Product Demo](https://drive.google.com/file/d/1jRvy0yR9_62vx6_vMXqhlR_VB--8MpKz/view?usp=sharing) | [Live MCP Chat](https://keen-forge-ocsbv.run.mcp-use.com/chat) | [Architecture](docs/architecture.md)
 
 Built with: mcp-use v2 | Manufact Cloud | Vercel | Supabase
 
@@ -138,6 +138,6 @@ NODE_ENV=development LEAD_SANDBOX_URL=http://127.0.0.1:8788 npm run dev
 - [`docs/threat-model.md`](docs/threat-model.md): current controls and known limitations.
 - [`BUILD_REPORT.md`](BUILD_REPORT.md): build outcome and verification summary.
 
-## Demo Video Pending
+## Product Demo
 
-The two-minute product demo and screenshot set are the next application-packaging artifacts. The current live Studio and MCP links above are available for verification.
+Watch the [Configurable MCP App Builder product demo](https://drive.google.com/file/d/1jRvy0yR9_62vx6_vMXqhlR_VB--8MpKz/view?usp=sharing), then use the live Studio and MCP links above for verification.
