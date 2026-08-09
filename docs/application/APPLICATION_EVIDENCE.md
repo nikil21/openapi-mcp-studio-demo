@@ -73,3 +73,17 @@ Project and runtime: `final-test`; Manufact server `d61d5fc6-0bf8-418f-a80d-59af
 Screenshot, CI run, log, or URL: User-provided private QA captures show Build, Tools, Flows, and Publish/Runtime states. Public screenshot recapture is required because these captures include a personal email, deployment identifiers, and the former MCP Foundry branding.
 
 Limitations: Manual step count was not recorded. The Vercel deployment URL remains non-stable. The dedicated runtime restart remains a deliberate manual activation step.
+
+## Phase 5 screenshot evidence
+
+Claim: Public application evidence will be captured consistently without exposing personal, credential, or deployment data.
+
+Command or user flow: Use a clean 1440 x 900 browser profile and the required capture list in `docs/assets/screenshots/README.md`.
+
+Observed result: Six public-safe PNGs were captured, reviewed, and recorded. They show Studio overview, operation selection, tool/view configuration, version history, rendered Repository Briefing output, and Manufact deployment history.
+
+Date verified: 2026-08-09
+
+Screenshot, CI run, log, or URL: `docs/assets/screenshots/README.md`.
+
+Limitations: Screenshots document one successful state at a time. They do not replace the live QA checklist or a recorded demo.

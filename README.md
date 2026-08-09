@@ -20,6 +20,10 @@ The builder imports a curated API description, curates operations into safe MCP 
 
 It explores the recurring configuration and release lifecycle after an initial codebase exists, rather than one-time prompt-to-code generation.
 
+![Configurable MCP App Builder Studio overview](docs/assets/screenshots/01-studio-overview.png)
+
+![Repository Briefing rendered in Manufact Chat](docs/assets/screenshots/05-live-mcp-app-briefing.png)
+
 ## Three-Minute Flow
 
 1. Import the GitHub OpenAPI fixture and review supported operations.

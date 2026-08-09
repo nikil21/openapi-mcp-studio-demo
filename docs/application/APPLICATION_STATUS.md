@@ -1,7 +1,7 @@
 # Application Status
 
-Last updated: 2026-08-09 19:41 IST
-Current phase: 4 complete - awaiting approval
+Last updated: 2026-08-09 21:26 IST
+Current phase: 5 complete - awaiting approval
 Overall status: In progress
 
 ## Phase Checklist
@@ -11,7 +11,7 @@ Overall status: In progress
 - [x] Phase 2 - Security, secrets, tests, and CI
 - [x] Phase 3 - README and supporting documentation
 - [x] Phase 4 - Live product QA and demo reliability
-- [ ] Phase 5 - Screenshots and evidence capture
+- [x] Phase 5 - Screenshots and evidence capture
 - [ ] Phase 6 - Product demo video package
 - [ ] Phase 7 - One-page product memo
 - [ ] Phase 8 - Tailored resume
@@ -24,8 +24,8 @@ Overall status: In progress
 
 ## Current Blockers
 
-- No blocker. Known non-blocking lint warning: `AuthGate.tsx` exports a hook and component. Public screenshots require clean recapture.
+- No blocker. Known non-blocking lint warning: `AuthGate.tsx` exports a hook and component.
 
 ## Next User Action
 
-- Review the Phase 4 checkpoint and reply `CONTINUE` to authorize Phase 5.
+- Review the Phase 5 checkpoint and reply `CONTINUE` to authorize Phase 6.
