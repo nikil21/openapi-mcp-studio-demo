@@ -1,7 +1,7 @@
 # Application Status
 
-Last updated: 2026-08-09 21:26 IST
-Current phase: 5 complete - awaiting approval
+Last updated: 2026-08-09 21:29 IST
+Current phase: 6 in progress - recording pending
 Overall status: In progress
 
 ## Phase Checklist
@@ -28,4 +28,4 @@ Overall status: In progress
 
 ## Next User Action
 
-- Review the Phase 5 checkpoint and reply `CONTINUE` to authorize Phase 6.
+- Record and host the product demo, then provide its verified public-with-link URL.
