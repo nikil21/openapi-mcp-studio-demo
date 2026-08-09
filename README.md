@@ -2,7 +2,7 @@
 
 A personal product exploration that turns a curated API into a versioned MCP App while Manufact provides the runtime and operating infrastructure.
 
-> Personal clean-room product exploration built using public APIs, public documentation, and personal accounts. Not affiliated with or endorsed by Manufact. No proprietary employer source material is included.
+> Personal clean-room product exploration built using public APIs, public documentation.
 
 > This proof supports a curated GitHub API subset and constrained templates. It does not claim arbitrary OpenAPI compatibility, general OAuth mapping, generic write-action generation, billing, or app-store automation.
 
@@ -10,7 +10,7 @@ A personal product exploration that turns a curated API into a versioned MCP App
 
 Built with: mcp-use v2 | Manufact Cloud | Vercel | Supabase
 
-## Problem
+## Problem-Statement
 
 Manufact makes MCP applications fast to scaffold, deploy, inspect, and operate. Product teams still need to decide which API operations should become tools, how tools are constrained and described, how results render, and how changes are published safely over time.
 
