@@ -115,3 +115,17 @@ Date verified: 2026-08-09
 Screenshot, CI run, log, or URL: `docs/application/MANUFACT_PRODUCT_MEMO.md`.
 
 Limitations: Proposed improvement metrics are hypotheses to measure, not results claimed by the prototype.
+
+## Phase 8 tailored resume source
+
+Claim: A one-page, engineering-first resume source aligns the applicant's documented MCP, platform, integration, and developer-tool experience with Manufact.
+
+Command or user flow: Review `resume/manufact_resume_source.md` against the original `/Users/nikilesh/Downloads/Aug_2026_Resume_v1.0.pdf`.
+
+Observed result: A 327-word single-column Markdown source preserves supported experience, adds the clean-room MCP proof, and links to the live product, demo, and source repository.
+
+Date verified: 2026-08-09
+
+Screenshot, CI run, log, or URL: `resume/manufact_resume_source.md` and `resume/EXPORT_INSTRUCTIONS.md`.
+
+Limitations: No PDF was generated because no reliable local Markdown-to-PDF converter is installed. Employer-specific scale, onboarding, publication, adoption, and runtime metrics were excluded pending disclosure approval.
