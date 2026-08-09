@@ -438,6 +438,14 @@ function App() {
       setPersistenceMessage(next ? `Deleted project. Switched to ${next.name}.` : "Project deleted.");
     } catch (error) { setPersistenceMessage(error instanceof Error ? error.message : "Could not delete project."); }
   };
+  const connectRuntime = async (serverId: string, runtimeUrl: string) => {
+    if (!project) return;
+    const response = await apiFetch(`/api/projects/${project.id}/runtime`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ serverId, runtimeUrl }) });
+    const payload = (await response.json()) as { project?: PersistedProject; error?: string };
+    if (!response.ok || !payload.project) throw new Error(payload.error ?? "Could not link runtime.");
+    setProject(payload.project); setProjects(projects.map((item) => item.id === payload.project?.id ? payload.project : item));
+    setPersistenceMessage("Runtime linked. Publish a version, then redeploy this project server.");
+  };
   const importSource = async () => {
     setImportState("loading");
     setMessage("");
@@ -716,6 +724,7 @@ function App() {
             saveDraft={saveDraft}
             publishVersion={publishVersion}
             runtimeCompatible={compatible}
+            connectRuntime={connectRuntime}
           />
         ) : (
           <Placeholder section={section} />
@@ -1209,6 +1218,7 @@ function PublishWorkspace({
   saveDraft,
   publishVersion,
   runtimeCompatible,
+  connectRuntime,
 }: {
   project: PersistedProject | null;
   versions: PersistedVersion[];
@@ -1216,7 +1226,11 @@ function PublishWorkspace({
   saveDraft: () => void;
   publishVersion: (version: PersistedVersion) => void;
   runtimeCompatible: boolean;
+  connectRuntime: (serverId: string, runtimeUrl: string) => Promise<void>;
 }) {
+  const [serverId, setServerId] = useState(project?.runtime_server_id ?? "");
+  const [runtimeUrl, setRuntimeUrl] = useState(project?.runtime_url ?? "");
+  const [runtimeMessage, setRuntimeMessage] = useState("");
   return (
     <div className="workspace publish-workspace">
       <section className="editor-intro">
@@ -1265,6 +1279,15 @@ function PublishWorkspace({
         {message ||
           "Save the current local configuration as an immutable draft version."}
       </p>
+      <section className="runtime-panel">
+        <p className="eyebrow">Project runtime</p>
+        <h3>{project?.runtime_url ? "Stable MCP server linked" : "Link a dedicated MCP server"}</h3>
+        <p>{project?.runtime_url ? `This project keeps ${project.runtime_url} across draft and published versions.` : "Provision one Manufact server for this project, then link its server ID and MCP URL here."}</p>
+        <label>Manufact server ID<input value={serverId} onChange={(event) => setServerId(event.target.value)} placeholder="00000000-0000-0000-0000-000000000000" /></label>
+        <label>Stable MCP URL<input value={runtimeUrl} onChange={(event) => setRuntimeUrl(event.target.value)} placeholder="https://your-server.run.mcp-use.com/mcp" /></label>
+        <button type="button" disabled={!project || !serverId || !runtimeUrl} onClick={() => void connectRuntime(serverId, runtimeUrl).then(() => setRuntimeMessage("Runtime linked to this project.")).catch((error) => setRuntimeMessage(error instanceof Error ? error.message : "Could not link runtime."))}>{project?.runtime_url ? "Update runtime link" : "Link runtime"}</button>
+        <p className="runtime-message">{runtimeMessage || "After publishing, redeploy this same Manufact server with STUDIO_PROJECT_ID set to this project ID."}</p>
+      </section>
       <section className="version-list">
         <div className="panel-heading">
           <div>
