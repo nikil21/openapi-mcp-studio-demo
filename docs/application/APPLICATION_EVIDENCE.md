@@ -43,3 +43,17 @@ Date verified: 2026-08-09
 Screenshot, CI run, log, or URL: `.github/workflows/quality.yml`, `docs/threat-model.md`, and terminal baseline output.
 
 Limitations: The lint warning in `studio/src/AuthGate.tsx` is non-blocking. CI does not run authenticated Supabase or Manufact integration tests.
+
+## Phase 3 documentation package
+
+Claim: A founder can understand the product, boundary, live proof, and verification posture without reading the codebase.
+
+Command or user flow: Reviewed README first screen, architecture, threat model, build report, demo script, product brief, and application link tracker.
+
+Observed result: README provides live Studio/MCP links, a concise product narrative, three-minute flow, Mermaid diagram, clean-room notice, scope statement, and links to detailed documents.
+
+Date verified: 2026-08-09
+
+Screenshot, CI run, log, or URL: `README.md`, `BUILD_REPORT.md`, and `docs/` documentation set.
+
+Limitations: Screenshot and video links remain intentionally marked pending until captured in later phases.

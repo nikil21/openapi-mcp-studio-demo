@@ -6,6 +6,45 @@ A personal product exploration that turns a curated API into a versioned MCP App
 
 > This proof supports a curated GitHub API subset and constrained templates. It does not claim arbitrary OpenAPI compatibility, general OAuth mapping, generic write-action generation, billing, or app-store automation.
 
+[Live Studio](https://openapi-mcp-studio-demo-82ptvk1y0-nikil22.vercel.app) | [Two-minute Demo](#demo-video-pending) | [Live MCP Chat](https://keen-forge-ocsbv.run.mcp-use.com/chat) | [Architecture](docs/architecture.md)
+
+Built with: mcp-use v2 | Manufact Cloud | Vercel | Supabase
+
+## Problem
+
+Manufact makes MCP applications fast to scaffold, deploy, inspect, and operate. Product teams still need to decide which API operations should become tools, how tools are constrained and described, how results render, and how changes are published safely over time.
+
+## What This Demonstrates
+
+The builder imports a curated API description, curates operations into safe MCP tools, binds reusable interactive views, publishes immutable configurations, and operates them through a stable Manufact-hosted MCP URL.
+
+It explores the recurring configuration and release lifecycle after an initial codebase exists, rather than one-time prompt-to-code generation.
+
+## Three-Minute Flow
+
+1. Import the GitHub OpenAPI fixture and review supported operations.
+2. Configure overview, issues, and contributors tools with bounded semantics and views.
+3. Compose the Repository Briefing flow, save a draft, publish it, and link a stable project runtime.
+4. Redeploy that same Manufact runtime to activate the published version without changing the MCP URL.
+
+## Architecture
+
+```mermaid
+flowchart TB
+    U[Product user] --> S[Vercel Studio]
+    S --> I[OpenAPI importer and support classifier]
+    S --> C[Tool semantics and view configuration]
+    S --> A[Supabase Auth]
+    S --> D[Projects, drafts, immutable versions, audit]
+    D --> P[Explicit publish and activation]
+    X[ChatGPT, Claude, or Manufact Chat] --> M[Stable Manufact MCP URL]
+    M --> R[mcp-use configuration runtime]
+    R --> E[Allowlisted API executor]
+    R --> V[MCP App views]
+    E --> G[GitHub public API]
+    M --> O[Manufact deployments, logs, analytics, and Inspector]
+```
+
 ## Live Proof
 
 - Shared MCP demo: `https://keen-forge-ocsbv.run.mcp-use.com/mcp`
@@ -92,3 +131,9 @@ NODE_ENV=development LEAD_SANDBOX_URL=http://127.0.0.1:8788 npm run dev
 - [`docs/architecture.md`](docs/architecture.md): hosted architecture and release boundary.
 - [`docs/demo-script.md`](docs/demo-script.md): two-minute demo walkthrough.
 - [`docs/phase-2.md`](docs/phase-2.md) and [`docs/phase-3.md`](docs/phase-3.md): original plans and deferred scope.
+- [`docs/threat-model.md`](docs/threat-model.md): current controls and known limitations.
+- [`BUILD_REPORT.md`](BUILD_REPORT.md): build outcome and verification summary.
+
+## Demo Video Pending
+
+The two-minute product demo and screenshot set are the next application-packaging artifacts. The current live Studio and MCP links above are available for verification.

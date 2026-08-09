@@ -5,6 +5,7 @@
 - Product demo video: Pending Phase 6.
 - Personal introduction video: Pending Phase 9.
 - GitHub repository: `https://github.com/nikil21/openapi-mcp-studio-demo`
+- Build report: `BUILD_REPORT.md`
 - Product memo: Pending Phase 7.
 - Resume: Private local artifact pending Phase 8.
 - Shared Manufact MCP endpoint: `https://keen-forge-ocsbv.run.mcp-use.com/mcp`
