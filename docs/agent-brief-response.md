@@ -40,7 +40,6 @@ The brief explicitly prioritized a narrow, reliable product proof over a complet
 The technical proof is complete and hosted:
 
 - Shared MCP demo: `https://keen-forge-ocsbv.run.mcp-use.com/mcp`
-- Shared chat: `https://keen-forge-ocsbv.run.mcp-use.com/chat`
 - Dedicated project runtime: `https://bold-zero-mrmgz.run.mcp-use.com/mcp`
 - Hosted Foundry: deployed on Vercel.
 

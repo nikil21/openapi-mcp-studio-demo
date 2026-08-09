@@ -9,7 +9,6 @@
 - Product memo: `docs/application/MANUFACT_PRODUCT_MEMO.md`
 - Resume: Prepared separately; not stored in this repository.
 - Shared Manufact MCP endpoint: `https://keen-forge-ocsbv.run.mcp-use.com/mcp`
-- Shared Manufact chat: `https://keen-forge-ocsbv.run.mcp-use.com/chat`
 - Dedicated Manufact MCP endpoint: `https://bold-zero-mrmgz.run.mcp-use.com/mcp`
 - Manufact dashboard or deployment evidence: Private.
 - LinkedIn profile: To be added by the owner.
