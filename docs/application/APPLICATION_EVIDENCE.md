@@ -101,3 +101,17 @@ Date verified: 2026-08-09
 Screenshot, CI run, log, or URL: `https://drive.google.com/file/d/1jRvy0yR9_62vx6_vMXqhlR_VB--8MpKz/view?usp=sharing`
 
 Limitations: Hosting is Google Drive rather than a dedicated video platform. The video is a recorded demonstration and does not replace live product verification.
+
+## Phase 7 founder-facing product memo
+
+Claim: The product experiment, its limits, and a measurable next test can be understood in a concise Manufact-specific memo.
+
+Command or user flow: Review `docs/application/MANUFACT_PRODUCT_MEMO.md` with its linked live product, video, repository, architecture, threat model, and build report.
+
+Observed result: An 807-word memo explains the configuration layer above Manufact, the constrained GitHub proof, explicit limits, a three-to-five-team experiment, and the author's clean-room contribution.
+
+Date verified: 2026-08-09
+
+Screenshot, CI run, log, or URL: `docs/application/MANUFACT_PRODUCT_MEMO.md`.
+
+Limitations: Proposed improvement metrics are hypotheses to measure, not results claimed by the prototype.
