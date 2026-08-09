@@ -1,37 +1,46 @@
 # Architecture
 
-## Milestone 1 Flow
+## Product Layers
 
 ```text
-Bundled OpenAPI 3.x JSON
-  -> parseOpenApiDocument
-  -> support classification
-  -> open-studio MCP tool
-  -> Studio MCP App catalog view
+Vercel-hosted MCP Foundry
+  -> authenticated Studio API
+  -> Supabase projects, versions, and audit data
+  -> published project configuration
+  -> dedicated Manufact runtime per project
+  -> MCP App tools and views
 ```
 
-`src/openapi/parse.ts` accepts a focused OpenAPI 3.x subset. It classifies an operation as supported only when it is a GET operation with inline path/query parameters, primitive parameter schemas, no request body, and a declared JSON response. The parser preserves unsupported operations with clear reasons so the Studio never silently creates a broken tool.
+The browser holds only a Supabase user session. The Studio API validates that bearer token, scopes every project route to `owner_id`, and uses its server-only Supabase service role for persistence.
 
-`src/config/schema.ts` owns the declarative application model. It validates the application identity, HTTPS API base URL, explicit host allowlist, up to three uniquely named tools, MCP-style annotations, result limits, and a supported view type.
+## Configuration Lifecycle
 
-`index.ts` parses the bundled GitHub fixture at startup and exposes it through the statically registered `open-studio` MCP tool. `views/studio/view.tsx` renders the returned structured content and permits local selection of up to three supported operations. Persistence and config export are intentionally deferred to Milestone 3.
+1. A user creates a project.
+2. Foundry saves immutable configuration drafts.
+3. Publishing sets one active version and supersedes the previous published version.
+4. A project links one stable Manufact runtime URL.
+5. Redeploying that same runtime loads the active version at startup.
 
-## Next Runtime Boundary
+Publishing and runtime activation are deliberately separate. A browser publish cannot silently alter a live MCP server.
 
-`src/config/load.ts` validates the checked-in configuration before server registration. The runtime maps friendly inputs such as `limit` to upstream parameters such as `per_page`, encodes path values, applies configured defaults and result limits, and builds a request against the configured API base URL.
+## Runtime Safety
 
-`src/runtime/execute-http.ts` is the network boundary. It permits only allowlisted HTTPS hosts, except explicitly configured localhost in development; uses GET requests with a stable User-Agent; accepts no caller-provided headers; keeps an optional bearer token server-side; rejects redirects; enforces a 10-second timeout and 1 MB response cap; emits request-ID structured logs; and returns safe errors.
+`src/config/schema.ts` validates app identity, HTTPS API base URL, host allowlist, bounded tool count, tool names, annotations, views, and constrained Repository Briefing graph shape.
 
-`src/runtime/normalize-result.ts` converts GitHub API output into stable view-ready repository, issue, and contributor shapes. Milestone 3 binds those three result shapes to reusable React views and completes the editable Studio flow.
+`src/runtime/execute-http.ts` enforces allowlisted HTTPS upstreams, server-owned headers, manual redirect blocking, timeout, response-size caps, safe errors, request IDs, and structured logs. The lead reference adds a bounded primitive JSON POST executor only for marked lead-capture schemas.
 
-## Studio and Views
+## Project Runtimes
 
-`open-studio` returns the catalog plus the validated startup configuration. `views/studio` maintains a browser-local working copy, validates it with the same Zod schema, saves it to local storage, and exports it as `app-config.json`. It deliberately does not change the server's in-memory configuration: production persistence and safe config rollout are outside this prototype milestone.
+Each project stores `runtime_server_id` and `runtime_url`. Versions do not create new URLs. The Manufact runtime receives `STUDIO_PROJECT_ID` and server-only Supabase credentials, reads that project’s active published version at startup, and registers its configured tools.
 
-Configured tools bind to one of three React views:
+## Reference Views
 
-- `summary-card` renders repository description, stars, forks, language, open issue count, and repository link.
-- `data-table` renders a horizontally scrollable issue table to preserve narrow layouts.
-- `ranked-list` renders contributors with avatar, rank, proportional contribution bar, and profile link.
+- `summary-card`: repository overview.
+- `data-table`: repository issues.
+- `ranked-list`: repository contributors.
+- `briefing`: combined constrained flow result.
+- `lead-capture`: demo-only confirmation-gated form.
 
-Each view handles pending, error, and empty states and supplies dark-mode styling.
+## Intentional Limits
+
+This proof is not a general API platform. It excludes arbitrary OpenAPI support, OAuth, generic writes, arbitrary workflow graphs, background jobs, billing, and client-store publishing automation.

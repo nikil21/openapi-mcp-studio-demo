@@ -1,79 +1,34 @@
 # Status
 
-## Milestone 0: Toolchain
+## Current Release
 
-Status: Phase 1 complete and publicly deployed. Phase 2.4 constrained flow-builder slice complete locally.
+MCP Foundry is a hosted clean-room product proof built on mcp-use v2, Manufact Cloud, Supabase, and Vercel.
 
-Completed on 2026-08-05:
+## Verified
 
-- Read the current mcp-use v2 and Manufact Cloud documentation.
-- Scaffolded the official MCP Apps template with `create-mcp-use-app`.
-- Initialized a local Git repository on the `main` branch; no remote or commit has been created.
-- Installed dependencies and ran the unmodified development server.
-- Verified the Inspector endpoint at `http://localhost:3000/mcp/inspector`.
-- Connected the headless Inspector client and invoked the stock `show-app` tool successfully.
-- Ran `npm run typecheck` and `npm run build` successfully.
-- Authenticated the Manufact CLI and deployed the unmodified template using Manufact-managed source.
-- Verified the live endpoint with the headless Inspector client.
-- Added a Zod-validated declarative app configuration with HTTPS, allowlist, tool-count, and unique-name validation.
-- Added the bundled public GitHub OpenAPI subset and an unsupported OpenAPI fixture.
-- Implemented GET-focused support classification and the `open-studio` catalog tool with a bound Studio MCP App view.
-- Added Vitest coverage for configuration validation and parser classification.
-- Load and validate the checked-in configuration before registering tools.
-- Registered `get_repository_overview`, `list_repository_issues`, and `list_top_contributors` from configuration.
-- Added safe GET execution, path/query mapping, result normalization, request IDs, and structured logs.
-- Added parameter mapping, HTTP execution, and normalization tests.
-- Added browser-local Studio configuration editing, schema validation, save, and JSON export.
-- Bound configured runtime tools to SummaryCard, DataTable, and RankedList views.
-- Added responsive, loading, empty, error, and dark-mode states to all result views.
+- Public shared MCP demo: `https://keen-forge-ocsbv.run.mcp-use.com/mcp`.
+- Hosted MCP Foundry frontend and API on Vercel.
+- Supabase email confirmation, sign-in, owner-scoped projects, RLS policies, immutable versions, publish lifecycle, and refresh persistence.
+- Safe GitHub OpenAPI import, bounded tool curation, reusable views, and constrained Repository Briefing flow.
+- Published flow order changes verified after deliberate redeploy.
+- Demo-only confirmation-gated lead capture through a Supabase Edge Function.
+- One stable project runtime URL linked to one dedicated Manufact server:
+  `https://bold-zero-mrmgz.run.mcp-use.com/mcp`.
 
-Verification results:
+## Release Model
 
-- Inspector endpoint: HTTP 200.
-- Registered tools: `show-app`, `say-hello`.
-- `show-app` returned structured content and the `my-view` UI resource.
-- Production build output: `.mcp-use/build/index.js`.
-- The stock template defines no `lint` or `test` scripts.
-- Milestone 2 tests: 12 passing.
-- `npm run typecheck`, `npm run build`, and the mcp-use v2 compatibility check pass.
-- The local `open-studio` tool returns three supported operations, one explicitly unsupported write operation, and `ui://views/studio.html`.
-- All three configured GitHub tools executed successfully in the local Inspector client against `mcp-use/mcp-use`.
-- Inspector responses confirm the configured view resources: `summary-card`, `data-table`, and `ranked-list`.
-- Fixed Studio browser loading by removing its direct import of the server-side schema, which caused a cross-origin request in the Inspector iframe.
-- Final dependency audit: zero production vulnerabilities.
-- Fixed issue result limiting by over-fetching GitHub issue rows before filtering pull requests; the table now returns the requested number of actual issues.
-- Final test suite: 13 passing tests.
-- Published the project at `https://github.com/nikil21/openapi-mcp-studio-demo`.
-- Deployed the completed Studio to Manufact Cloud at `https://keen-forge-ocsbv.run.mcp-use.com/mcp`.
-- Verified all three public GitHub tools and their SummaryCard, DataTable, and RankedList UI resources after configuring the optional server-side GitHub token.
-- Added a standalone React/Vite Studio application in `studio/` with project lifecycle navigation, draft/published-version framing, runtime contract visibility, and local fixture mode.
-- Studio foundation verification: lint and production build pass; local shell responds at `http://127.0.0.1:5173`.
-- Added a local Studio import API with public-HTTPS validation, private-network rejection, redirect blocking, timeout, and response cap.
-- Added remote OpenAPI import, focused support classification, three-tool selection, and editable local tool drafts to the standalone Studio.
-- Verified import of the public GitHub fixture and rejection of a localhost HTTP URL; Studio lint and production build pass.
-- Added a standalone Views workspace with Summary Card, Data Table, and Ranked List template selection.
-- Added controlled draft field bindings and fixture-backed previews for each template mode.
-- Studio lint and production build pass after the Phase 2.2 view-builder work.
-- Connected the local Studio API to Supabase through a server-only service-role key.
-- Added persisted projects, immutable draft/published/superseded configuration versions, active-version pointer updates, and audit events.
-- Verified project creation, invalid-config rejection, draft version creation, transactional publish, automatic supersession, audit retrieval, and persistence health.
-- Added optional runtime activation from the active published Studio version at process startup.
-- Verified local activation against Studio `v3`, including successful configured-tool execution.
-- Added Studio activation variables to Manufact Cloud and deployed the activation-enabled runtime.
-- Verified the public runtime startup loaded Studio `v3` and all three public GitHub tools executed with SummaryCard, DataTable, and RankedList resources.
-- Added a constrained Repository Briefing flow canvas with React Flow / XYFlow, shared inputs, optional tool steps, condition, terminal result, and fixture execution trace.
-- Studio lint and production build pass with the flow-builder slice.
-- Persisted the constrained flow in Studio configuration versions and validate its shape server-side.
-- Published Studio `v4`, deployed the flow-enabled runtime, and verified the public `get_repository_briefing` tool with its combined briefing view.
-- Added direct flow draft-save controls and runtime-compatibility status to the standalone Studio release workflow.
-- Screenshot rendering through the mcp-use CLI timed out waiting for readiness; the tool and bound view resource were verified, but visual screenshot verification remains outstanding.
-- Deployment status: running.
-- Live MCP URL: `https://keen-forge-ocsbv.run.mcp-use.com/mcp`.
-- Live chat URL: `https://keen-forge-ocsbv.run.mcp-use.com/chat`.
-- Manufact server ID: `0a56bdee-9c8a-46e8-a51a-07a08f72579d`.
+Publishing sets a project’s active configuration version. The owner manually redeploys that project’s linked Manufact server to activate it. The MCP URL remains stable across drafts and versions.
 
-Next tasks:
+## Intentional Limits
 
-1. Capture manual Inspector screenshots; the framework screenshot CLI still times out waiting for view readiness.
-2. Record the two-minute demo and application video.
-3. Host the standalone Studio API and frontend before treating Phase 2 as a public self-serve product.
+- One dedicated runtime can be tested at a time on the current Manufact server limit.
+- Runtime redeploy remains manual for the demo.
+- Lead capture is a fixed reference safety pattern, not a Studio-generated generic write flow.
+- No arbitrary OpenAPI, OAuth, arbitrary workflow DAGs, billing, or client-store automation.
+
+## Next Work
+
+1. Capture screenshots and record the two-minute demo.
+2. Write the one-page product experiment memo.
+3. Prepare application artifacts: tailored resume, short introduction video, and founder outreach.
+4. Optionally automate redeploys with a server-side Manufact integration after the demo proof is evaluated.

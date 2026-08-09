@@ -109,3 +109,11 @@ The first visual flow is a Repository Briefing composed of shared inputs, config
 ## 2026-08-07: Execute published briefing flows through configured tools
 
 The published GitHub flow registers `get_repository_briefing` at runtime. It calls only the configured overview, issues, and contributor operations through the existing allowlisted executor, preserves result limits and safe error behavior, and returns one combined briefing view. Flow publication still requires deliberate runtime redeploy to apply publicly.
+
+## 2026-08-09: Use one stable runtime per Studio project
+
+Each Studio project can link one dedicated Manufact server ID and MCP URL. Publishing selects that project’s desired configuration version; a deliberate redeploy of the same runtime activates it. This prevents a shared runtime from selecting arbitrary user projects and keeps Manufact credentials out of the hosted Studio browser.
+
+## 2026-08-09: Freeze core product scope for portfolio packaging
+
+The original proof requirements are complete and the hosted product exceeds the initial local-only scope. Further generic write generation, automated deployment, and workflow expansion are deferred in favor of screenshots, demo video, documentation, memo, and application artifacts.
