@@ -6,7 +6,7 @@ A personal product exploration that turns a curated API into a versioned MCP App
 
 > This proof supports a curated GitHub API subset and constrained templates. It does not claim arbitrary OpenAPI compatibility, general OAuth mapping, generic write-action generation, billing, or app-store automation.
 
-[Live Studio](https://openapi-mcp-studio-demo-82ptvk1y0-nikil22.vercel.app) | [Product Demo](https://drive.google.com/file/d/1jRvy0yR9_62vx6_vMXqhlR_VB--8MpKz/view?usp=sharing) | [Dedicated MCP Endpoint](https://bold-zero-mrmgz.run.mcp-use.com/mcp) | [Architecture](docs/architecture.md)
+[Product Demo](https://drive.google.com/file/d/1jRvy0yR9_62vx6_vMXqhlR_VB--8MpKz/view?usp=sharing) | [Dedicated MCP Endpoint](https://bold-zero-mrmgz.run.mcp-use.com/mcp) | [Live Studio](https://openapi-mcp-studio-demo-82ptvk1y0-nikil22.vercel.app) | [Architecture](docs/architecture.md)
 
 Built with: mcp-use v2 | Manufact Cloud | Vercel | Supabase
 
