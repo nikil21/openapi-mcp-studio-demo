@@ -7,7 +7,7 @@
 - GitHub repository: `https://github.com/nikil21/openapi-mcp-studio-demo`
 - Build report: `BUILD_REPORT.md`
 - Product memo: `docs/application/MANUFACT_PRODUCT_MEMO.md`
-- Resume source: `resume/manufact_resume_source.md`; PDF export instructions: `resume/EXPORT_INSTRUCTIONS.md`.
+- Resume: Prepared separately; not stored in this repository.
 - Shared Manufact MCP endpoint: `https://keen-forge-ocsbv.run.mcp-use.com/mcp`
 - Shared Manufact chat: `https://keen-forge-ocsbv.run.mcp-use.com/chat`
 - Dedicated Manufact MCP endpoint: `https://bold-zero-mrmgz.run.mcp-use.com/mcp`
