@@ -175,7 +175,12 @@ export async function studioApiHandler(request, response) {
     if (request.method === 'POST' && request.url === '/api/projects') {
       const user = await requireUser(request)
       const { name, apiSourceUrl, config } = await readRequest(request)
-      if (typeof name !== 'string' || name.trim().length === 0 || !config || typeof config !== 'object') throw new Error('Project name and configuration are required.')
+      if (typeof name !== 'string' || name.trim().length === 0) throw new Error('A project name is required.')
+      if (config === undefined) {
+        const [project] = await supabase('studio_projects', { method: 'POST', body: JSON.stringify({ name: name.trim(), api_source_url: typeof apiSourceUrl === 'string' ? apiSourceUrl : null, owner_id: user.id }) })
+        return respond(response, 201, { project })
+      }
+      if (config === null || typeof config !== 'object') throw new Error('Project configuration is invalid.')
       const validation = validateStudioConfig(config)
       if (validation.length > 0) throw new Error(`Configuration validation failed: ${validation.join(' ')}`)
       const [project] = await supabase('studio_projects', { method: 'POST', body: JSON.stringify({ name: name.trim(), api_source_url: typeof apiSourceUrl === 'string' ? apiSourceUrl : null, owner_id: user.id }) })
@@ -192,6 +197,12 @@ export async function studioApiHandler(request, response) {
       if (typeof name !== 'string' || name.trim().length === 0 || name.trim().length > 120) throw new Error('Project name must contain between 1 and 120 characters.')
       const [updated] = await supabase(`studio_projects?id=eq.${project.id}`, { method: 'PATCH', body: JSON.stringify({ name: name.trim(), updated_at: new Date().toISOString() }) })
       return respond(response, 200, { project: updated })
+    }
+    if (project && request.method === 'DELETE' && project.action === undefined) {
+      const [owned] = await supabase(`studio_projects?id=eq.${project.id}&select=active_version_id`)
+      if (owned?.active_version_id) throw new HttpError(409, 'A project with an active published version cannot be deleted.')
+      await supabase(`studio_projects?id=eq.${project.id}`, { method: 'DELETE' })
+      return respond(response, 204, {})
     }
     if (project && request.method === 'POST' && project.action === 'versions') {
       const { config } = await readRequest(request)
